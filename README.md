@@ -8,7 +8,7 @@
 MP-Devourer
 ===========
 
-**MP-Devourer** is the *Magma Playout Ingest Server* [^footnote1][^footnote2]. Some of the ingest functions are
+**MP-Devourer** is the *Magma Playout Ingest Server* (view wikipedia pages below). Some of the ingest functions are
 
  - Analyze a directory and provide all video files to the playout
  - Transcode video files in directory
@@ -56,6 +56,6 @@ Usage
 
 
 
-  [^footnote1]: [Wikipedia: Video Server](https://en.wikipedia.org/wiki/Video_server).
+ [Wikipedia: Video Server](https://en.wikipedia.org/wiki/Video_server).
 
-  [^footnote2]: [Wikipedia: Playout](https://en.wikipedia.org/wiki/Playout).
+ [Wikipedia: Playout](https://en.wikipedia.org/wiki/Playout).
