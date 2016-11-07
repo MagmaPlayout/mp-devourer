@@ -9,6 +9,9 @@ import com.google.gson.Gson;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,14 +35,9 @@ public class IngestServer {
             } catch (IOException ex) {
                 Logger.getLogger(IngestServer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            // Output file logger
-            String homeDir = System.getProperty("user.home");
-            String outFileName = homeDir + "/.magma-playout/ingestOutput.txt";
-            PrintStream out = new PrintStream(new FileOutputStream(outFileName));
-            System.setOut(out);
 
             // Exec gui
-            TerminalGUI tgui = new TerminalGUI();
+            LanternaTerminalGUI tgui = new LanternaTerminalGUI();
             tgui.executeGUI();
 
 //            DirectoryCrawler dc;
