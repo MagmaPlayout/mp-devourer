@@ -54,9 +54,13 @@ Usage
 -----
 ![enter image description here](http://i.imgur.com/fU6SfVS.png)
 
-**Media Directory**: Directory where you keep your video files.
-**Run and Die**: Analyzes the directory folder and close the program.
-**Start Service**: Directory polling. Not implemented yet.
+
+-**Media Directory**: Directory where you keep your video files.
+
+-**Run and Die**: Analyzes the directory folder and close the program.
+
+-**Start Service**: Directory polling. Not implemented yet.
+
 
 
 
