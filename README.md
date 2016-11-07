@@ -28,6 +28,8 @@ Get the code and compile the Netbeans Java project yourself
 Simply use the jar provided in **/dist** folder or download it from the *releases* section
 
 
+
+
 Running
 -------
 Execute in therminal
@@ -40,6 +42,12 @@ alternatively you can do
 
 in order to generate a text file with detailed output.
 
+**Important**: Running the program for the first time will create a configuration file at:
+*~/.magma-playout/ingestserver.properties* you **HAVE TO** edit that file and manually input your
+*ffmpeg* and *ffprobe* paths. In order to get the paths you can execute:
+
+	whereis ffmpeg
+	whereis ffprobe
 
 Usage
 -----
