@@ -16,7 +16,6 @@ MP-Devourer
  - Provide clip information (video length, framerate, etc)
 
 
-----------
 
 Getting Started
 -------
@@ -27,9 +26,6 @@ Get the code and compile the Netbeans Java project yourself
 **-or-**
 
 Simply use the jar provided in **/dist** folder or download it from the *releases* section
-
-
-----------
 
 
 Running
@@ -44,7 +40,6 @@ alternatively you can do
 
 in order to generate a text file with detailed output.
 
-----------
 
 Usage
 -----
