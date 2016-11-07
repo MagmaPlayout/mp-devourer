@@ -43,7 +43,8 @@ alternatively you can do
 in order to generate a text file with detailed output.
 
 **Important**: Running the program for the first time will create a configuration file at:
-*~/.magma-playout/ingestserver.properties* you **HAVE TO** edit that file and manually input your
+
+*~/.magma-playout/ingestserver.properties* you **HAVE** to edit that file and manually input your
 *ffmpeg* and *ffprobe* paths. In order to get the paths you can execute:
 
 	whereis ffmpeg
