@@ -52,7 +52,7 @@ in order to generate a text file with detailed output.
 
 Usage
 -----
-![enter image description here](http://i.imgur.com/fU6SfVS.png)
+![enter image description here](http://i.imgur.com/JGcSQgP.png)
 
 
 -**Media Directory**: Directory where you keep your video files.
