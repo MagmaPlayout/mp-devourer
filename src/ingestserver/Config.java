@@ -1,21 +1,25 @@
 package ingestserver;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 /**
- * Reads the configuration file
+ * Reads the configuration file. Creates config file if needed.
  *
  * @author cyberpunx
  */
 public class Config {
 
     private String homeDir = System.getProperty("user.home");
+    private String dir = homeDir + "/.magma-playout";
     private String propFileName = homeDir + "/.magma-playout/ingestserver.properties";
     private InputStream inputStream;
     private String redisHost;
@@ -29,20 +33,45 @@ public class Config {
      * @throws IOException
      */
     public Config() throws IOException {
-
+        boolean success = false;
         try {
+            File directory = new File(dir);
+            if (directory.exists()) {
+                System.out.println("Magma playout directory already exists ...");
+            } else {
+                System.out.println("Directory not exists, creating now");
+                success = directory.mkdir();
+                if (success) {
+                    System.out.printf("Successfully created new directory : %s%n", dir);
+                } else {
+                    System.out.printf("Failed to create new directory: %s%n", dir);
+                }
+            }
+
+            File f = new File(propFileName);
+            if (f.exists()) {
+                System.out.println("Config file already exists");
+
+            } else {
+                System.out.println("No such file exists, creating now");
+                success = f.createNewFile();
+                try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(propFileName))) {
+                    writer.write("redis_host=localhost\n");
+                    writer.write("redis_port=6379\n");
+                    writer.write("media_directory=" + homeDir + "/Videos\n");
+                    writer.write("ffmpeg_path=\n");
+                    writer.write("ffprobe_path=\n");
+                }
+                if (success) {
+                    System.out.printf("Successfully created new file: %s%n", f);
+                } else {
+                    System.out.printf("Failed to create new file: %s%n", f);
+                }
+            }
+
             Properties prop = new Properties();
             inputStream = new FileInputStream(propFileName);
             prop.load(inputStream);
-
-            //inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
-            if (inputStream != null) {
-                prop.load(inputStream);
-            } else {
-                throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
-            }
-
-            Date time = new Date(System.currentTimeMillis());
 
             // get the property value and save it
             this.redisHost = prop.getProperty("redis_host");

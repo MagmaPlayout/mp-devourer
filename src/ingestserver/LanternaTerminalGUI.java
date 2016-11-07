@@ -11,7 +11,6 @@ import com.googlecode.lanterna.gui2.ActionListBox;
 import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Borders;
 import com.googlecode.lanterna.gui2.Button;
-import com.googlecode.lanterna.gui2.CheckBoxList;
 import com.googlecode.lanterna.gui2.DefaultWindowManager;
 import com.googlecode.lanterna.gui2.Direction;
 import com.googlecode.lanterna.gui2.EmptySpace;
@@ -20,30 +19,24 @@ import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.LinearLayout;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.TextBox;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
-import com.googlecode.lanterna.gui2.dialogs.TextInputDialog;
 import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import java.io.File;
 import java.io.IOException;
-import static java.nio.file.Files.size;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  *
- * @author ragnarok
+ * @author cyberpunx
  */
 public class LanternaTerminalGUI {
 
@@ -65,6 +58,30 @@ public class LanternaTerminalGUI {
         Screen screen = new TerminalScreen(terminal);
         screen.startScreen();
         WindowBasedTextGUI gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
+
+        // Create window to hold the panels
+        BasicWindow window = new BasicWindow();
+        window.setHints(Arrays.asList(Window.Hint.CENTERED, Window.Hint.NO_DECORATIONS));
+
+        // creates main panel
+        Panel mainPanel = new Panel();
+        mainPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+        //TITLE
+        Panel titlePanel = new Panel();
+        Label title = new Label(""
+                + "██████╗ ███████╗██╗   ██╗ ██████╗ ██╗   ██╗██████╗ ███████╗██████╗ \n"
+                + "██╔══██╗██╔════╝██║   ██║██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔══██╗\n"
+                + "██║  ██║█████╗  ██║   ██║██║   ██║██║   ██║██████╔╝█████╗  ██████╔╝\n"
+                + "██║  ██║██╔══╝  ╚██╗ ██╔╝██║   ██║██║   ██║██╔══██╗██╔══╝  ██╔══██╗\n"
+                + "██████╔╝███████╗ ╚████╔╝ ╚██████╔╝╚██████╔╝██║  ██║███████╗██║  ██║\n"
+                + "╚═════╝ ╚══════╝  ╚═══╝   ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝");
+        title.setForegroundColor(TextColor.ANSI.WHITE);
+        title.setBackgroundColor(TextColor.ANSI.BLUE);
+        titlePanel.addComponent(title);
+        mainPanel.addComponent(titlePanel);
+
+        window.setComponent(titlePanel.withBorder(Borders.singleLine("Main Panel")));
 
         // Creates run mode panel
         Panel runModePanel = new Panel();
@@ -102,14 +119,6 @@ public class LanternaTerminalGUI {
         });
 
         runModePanel.addComponent(actionListBox);
-
-        // Create window to hold the panel
-        BasicWindow window = new BasicWindow();
-        window.setHints(Arrays.asList(Window.Hint.CENTERED, Window.Hint.NO_DECORATIONS));
-
-        // creates main panel
-        Panel mainPanel = new Panel();
-        mainPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
         // create panel to input media directory
         Panel filePanel = new Panel();
@@ -161,6 +170,7 @@ public class LanternaTerminalGUI {
         mainPanel.addComponent(exitPanel);
 
         window.setComponent(mainPanel);
+
         // Create gui and start gui
         gui.addWindowAndWait(window);
 

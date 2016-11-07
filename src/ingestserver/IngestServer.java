@@ -5,18 +5,9 @@
  */
 package ingestserver;
 
-import com.google.gson.Gson;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -40,13 +31,9 @@ public class IngestServer {
             LanternaTerminalGUI tgui = new LanternaTerminalGUI();
             tgui.executeGUI();
 
-//            DirectoryCrawler dc;
-//            dc = new DirectoryCrawler(config.getMediaDirectory());
-//            dc.analyze();
-
             /* TODO IMPLEMENTAR DIRECTORY POLLER */
 //        DirectoryPoller dp;
-//        dp = new DirectoryPoller("/home/ragnarok/Documents/PROYECTO_FINAL/IngestServer/IngestServer/media");
+//        dp = new DirectoryPoller(config.getMediaDirectory());
 //        dp.start();
 //
 //        int i = 10;
