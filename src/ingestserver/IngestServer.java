@@ -31,34 +31,6 @@ public class IngestServer {
             LanternaTerminalGUI tgui = new LanternaTerminalGUI();
             tgui.executeGUI();
 
-            /* TODO IMPLEMENTAR DIRECTORY POLLER */
-//        DirectoryPoller dp;
-//        dp = new DirectoryPoller(config.getMediaDirectory());
-//        dp.start();
-//
-//        int i = 10;
-//        while (i > 0) {
-//            System.out.println("Remaining: " + i + " seconds");
-//            try {
-//                i--;
-//                Thread.sleep(1000L);    // 1000L = 1000ms = 1 second
-//            } catch (InterruptedException e) {
-//                //I don't think you need to do anything for your particular problem
-//            }
-//        }
-//
-//        dp.stopPolling();
-//
-//        i = 10;
-//        while (i > 0) {
-//            System.out.println("Remaining: " + i + " seconds");
-//            try {
-//                i--;
-//                Thread.sleep(1000L);    // 1000L = 1000ms = 1 second
-//            } catch (InterruptedException e) {
-//                //I don't think you need to do anything for your particular problem
-//            }
-//        }
         } catch (IOException ex) {
             Logger.getLogger(IngestServer.class.getName()).log(Level.SEVERE, null, ex);
         }

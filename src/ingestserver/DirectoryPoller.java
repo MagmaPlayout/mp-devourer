@@ -33,18 +33,13 @@ public class DirectoryPoller extends Thread {
         fp = new FileProcessor();
     }
 
-    @Override
-    public void run() {
-        System.out.println("Polling started at " + this.DirectoryAbsolutePath);
-        startPolling();
-    }
-
     /**
      * Starts the Thread, analyzing the directory and processing when something
      * changes
      */
-    public void startPolling() {
-
+    @Override
+    public void run() {
+        System.out.println("Polling started at " + this.DirectoryAbsolutePath);
         this.isPolling = true;
 
         try (WatchService service = FileSystems.getDefault().newWatchService()) {
@@ -88,6 +83,7 @@ public class DirectoryPoller extends Thread {
     public void stopPolling() {
         this.isPolling = false;
         System.out.println("Polling stopped");
+        Thread.currentThread().interrupt();
     }
 
 }

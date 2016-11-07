@@ -108,13 +108,12 @@ public class LanternaTerminalGUI {
         actionListBox.addItem("START SERVICE", new Runnable() {
             @Override
             public void run() {
-                //executes directory poller
-                new MessageDialogBuilder()
-                        .setTitle("")
-                        .setText("Not implemented yet!")
-                        .addButton(MessageDialogButton.Close)
-                        .build()
-                        .showDialog(gui);
+                try {
+                    //executes directory poller
+                    LanternaTerminalGUIPoller pollerWindow = new LanternaTerminalGUIPoller(terminal, gui, config.getMediaDirectory());
+                } catch (IOException ex) {
+                    Logger.getLogger(LanternaTerminalGUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
 
