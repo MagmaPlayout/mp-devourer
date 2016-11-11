@@ -44,11 +44,13 @@ public class LanternaTerminalGUI {
     String defaultMedia;
 
     public LanternaTerminalGUI() {
+
         try {
             this.config = new Config();
         } catch (IOException ex) {
-            Logger.getLogger(RedisManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LanternaTerminalGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         this.defaultMedia = config.getMediaDirectory();
     }
 

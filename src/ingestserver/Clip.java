@@ -1,8 +1,11 @@
 package ingestserver;
 
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 
 /**
  * A Clip class used as a data structure containing relevant data.
@@ -13,10 +16,20 @@ public class Clip {
 
     private String name;
     private String path;
-    private List<Thumbnail> thumbnails;
+    private String thumbnails;
+    //private List<Thumbnail> thumbnails;
     private String duration;
     private String fps;
     private String frames;
+    private String id;
+
+    public long getId() {
+        return Long.getLong(id);
+    }
+
+    public void setId(long id) {
+        this.id = String.valueOf(id);
+    }
 
     @Override
     public String toString() {
@@ -27,7 +40,7 @@ public class Clip {
      * Initializes the clip with null data
      */
     public Clip() {
-        this.thumbnails = new ArrayList<>();
+
     }
 
     /**
@@ -69,11 +82,25 @@ public class Clip {
      * @param thumbnails array of strins. Each string is a Path to a thumbnail.
      */
     public void setThumbnails(List<String> thumbnails) {
+        List<Thumbnail> thumbList = new ArrayList<>();
         for (final String thumbstring : thumbnails) {
             Thumbnail thumb = new Thumbnail();
             thumb.setPath(thumbstring);
-            this.thumbnails.add(thumb);
+            thumbList.add(thumb);
+
         }
+        Gson gson = new Gson();
+        String thumbString = gson.toJson(thumbList);
+        this.thumbnails = thumbString;
+    }
+
+//    public void setThumbnails(List<String> thumblist) {
+    //        Gson gson = new Gson();
+    //        String thumbString = gson.toJson(thumblist);
+    //        this.thumbnails = thumbString;
+    //    }
+    public String getThumbnails() {
+        return thumbnails;
     }
 
     /**

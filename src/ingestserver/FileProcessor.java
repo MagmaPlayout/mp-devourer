@@ -217,9 +217,10 @@ public class FileProcessor {
             flag = true;
         } else if (file.toString().toLowerCase().endsWith(".mov")) {
             flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".txt")) {
-            flag = true;
         }
+//        } else if (file.toString().toLowerCase().endsWith(".txt")) {
+//            flag = true;
+//        }
         return flag;
     }
 

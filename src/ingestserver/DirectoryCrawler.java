@@ -18,6 +18,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.transform.Affine;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 
 /**
  * Given a directory. Walks it, analyzing each file and processing it if it's a
@@ -48,9 +50,14 @@ public class DirectoryCrawler {
      * files found.
      */
     public void analyze() {
+        // Setup Redis and deletes all previous keys. We start from 0 each time.
+        RedisManager redis = new RedisManager();
+        redis.resetRedisKeys();
+
         String dirPath = this.DirectoryAbsolutePath;
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
+
         if (files.length == 0) {
             System.out.println("The directory is empty");
         } else {
@@ -69,7 +76,9 @@ public class DirectoryCrawler {
     }
 
     private void processFiles(File file) throws IOException {
+
         System.out.println("Processing file: " + file.getAbsolutePath());
+        System.out.println("--------------------\n");
 
         String[] cmdOut;
         String duration = null;
@@ -108,8 +117,8 @@ public class DirectoryCrawler {
         //Thumbnails
         thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
         thumbArray.forEach(System.out::println);
-        System.out.println("--------------------\n");
-
+        ;
+        System.out.println("\nRedis Insert:\n");
         //Creates Clip Object
         Clip clip = new Clip();
         clip.setName(file.getName());
@@ -118,15 +127,15 @@ public class DirectoryCrawler {
         clip.setDuration(duration);
         clip.setFps(framerate);
         clip.setFrames(frames);
-        System.out.println("clip = " + clip.toString());
-
-        // Clip to Json object
-        Gson gson = new Gson();
-        String json = gson.toJson(clip);
+        //System.out.println("clip = " + clip.toString());
 
         // push clips in redis
-        Jedis redis = new Jedis();
-        redis.rpush("cliplist", json);
+        //Jedis redis = new jedis();
+        //redis.rpush("cliplist", json); // old list cliplist
+        RedisManager redis = new RedisManager();
+        redis.addClip(clip);
+        System.out.println("--------------------\n");
+
     }
 
 }
