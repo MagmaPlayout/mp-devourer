@@ -33,7 +33,7 @@ public class Clip {
 
     @Override
     public String toString() {
-        return "Clip{" + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + fps + ", frames=" + frames + '}';
+        return "Clip{" + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + fps + ", frames=" + frames + ", id=" + id + '}';
     }
 
     /**

@@ -23,13 +23,14 @@ public class RedisManager {
     }
 
     public Clip addClip(Clip clip) {
+
+        long clipId = redis.incr("clip:ids");
+        clip.setId(clipId);
+
         //maps object to map using JSON
         Gson gson = new Gson();
         String jsonClip = gson.toJson(clip);
         Map<String, String> clipMap = gson.fromJson(jsonClip, Map.class);
-
-        long clipId = redis.incr("clip:ids");
-        clip.setId(clipId);
         System.out.println("INCR clip:ids = " + String.valueOf(clipId));
 
         //Getting the Pipeline

@@ -117,7 +117,7 @@ public class DirectoryCrawler {
         //Thumbnails
         thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
         thumbArray.forEach(System.out::println);
-        ;
+
         System.out.println("\nRedis Insert:\n");
         //Creates Clip Object
         Clip clip = new Clip();
