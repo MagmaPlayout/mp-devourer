@@ -123,7 +123,17 @@ public class DirectoryCrawler {
         Clip clip = new Clip();
         clip.setName(file.getName());
         clip.setPath(file.getAbsolutePath());
-        clip.setThumbnails(thumbArray);
+
+        //FIX-ME deshardcodear esta mierda
+        String path2[];
+        List<String> thumbArray2 = new ArrayList<>();
+        for (String path : thumbArray) {
+            path2 = path.split("/");
+            path = "/public/img/" + path2[path2.length - 1];
+            thumbArray2.add(path);
+        }
+
+        clip.setThumbnails(thumbArray2);
         clip.setDuration(duration);
         clip.setFps(framerate);
         clip.setFrames(frames);
