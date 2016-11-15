@@ -21,6 +21,7 @@ public class FileProcessor {
 
     private String ffprobe;
     private final String ffmpeg;
+    private String mediaDirectory;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
@@ -34,6 +35,7 @@ public class FileProcessor {
         }
         this.ffmpeg = config.getFfmpeg();
         this.ffprobe = config.getFfprobe();
+        this.mediaDirectory = config.getMediaDirectory();
     }
 
     /**
@@ -103,6 +105,32 @@ public class FileProcessor {
 
         //thumbArray.forEach(System.out::println);
         return thumbArray;
+    }
+
+    public void transcodeLoselessH264(String inputString) {
+        File input = new File(inputString);
+        String[] cmdOut;
+        String outputString = this.mediaDirectory + "/output/" + input.getName();
+        File output = new File(outputString);
+
+        if (output.exists()) {
+            System.out.println("FILE OUTPUT ALREADY EXISTS: " + outputString + " -- NO TRANSCODE DONE");
+        } else {
+            try {
+                System.out.println("TRANSCODING: " + inputString);
+                cmdOut = execFfmpeg("-i " + inputString + " -f avi -c:v libx264 -qp 0 " + outputString);
+                if (!"".equals(cmdOut[1])) {
+                    System.out.println(cmdOut[1]);
+                }
+                if (!"".equals(cmdOut[1])) {
+                    System.out.println(cmdOut[0]);
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(FileProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
     }
 
     /**

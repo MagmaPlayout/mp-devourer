@@ -158,6 +158,23 @@ public class LanternaTerminalGUI {
             }
         }));
 
+        Panel transcodePanel = new Panel();
+        ActionListBox transcodeActionListBox = new ActionListBox(new TerminalSize(30, 2));
+        transcodePanel.setLayoutManager(new GridLayout(2));
+        transcodeActionListBox.addItem("H264 LOSELESS PRESET", new Runnable() {
+            @Override
+            public void run() {
+                MessageDialog.showMessageDialog(gui, "", "Press <enter> and wait!");
+                // Execute Directory crawler transcoder
+                DirectoryCrawler dc;
+                dc = new DirectoryCrawler(config.getMediaDirectory());
+                dc.transcodeInputDirectory();
+                MessageDialog.showMessageDialog(gui, "", "Done!");
+            }
+        });
+        transcodePanel.addComponent(transcodeActionListBox);
+        mainPanel.addComponent(transcodePanel.withBorder(Borders.singleLine("Transcode input directory")));
+
         // exit button panel
         Panel exitPanel = new Panel();
         exitPanel.addComponent(new EmptySpace(new TerminalSize(10, 1)));

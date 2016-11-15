@@ -75,6 +75,29 @@ public class DirectoryCrawler {
         }
     }
 
+    public void transcodeInputDirectory() {
+        String dirPath = this.DirectoryAbsolutePath + "/input";
+        File dir = new File(dirPath);
+        File[] files = dir.listFiles();
+
+        if (files.length == 0) {
+            System.out.println("The directory is empty");
+        } else {
+            System.out.println("TRANSCODING DIRECTORY: " + dirPath + "\n\n");
+            for (File aFile : files) {
+                if (fp.isCorrectFileType(aFile.toPath())) {
+                    //System.out.println(aFile.getName() + " - " + aFile.length());
+                    try {
+                        //transcode files
+                        fp.transcodeLoselessH264(aFile.getAbsolutePath());
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+
+    }
+
     private void processFiles(File file) throws IOException {
 
         System.out.println("Processing file: " + file.getAbsolutePath());
