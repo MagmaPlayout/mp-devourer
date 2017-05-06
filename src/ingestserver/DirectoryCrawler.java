@@ -14,12 +14,21 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.transform.Affine;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
+import us.monoid.json.JSONObject;
+import us.monoid.web.AbstractContent;
+import us.monoid.web.Content;
+import us.monoid.web.FormData;
+import us.monoid.web.JSONResource;
+import us.monoid.web.Resty;
+import static us.monoid.web.Resty.data;
+import static us.monoid.web.Resty.form;
 
 /**
  * Given a directory. Walks it, analyzing each file and processing it if it's a
@@ -51,8 +60,8 @@ public class DirectoryCrawler {
      */
     public void analyze() {
         // Setup Redis and deletes all previous keys. We start from 0 each time.
-        RedisManager redis = new RedisManager();
-        redis.resetRedisKeys();
+        //RedisManager redis = new RedisManager();
+        //redis.resetRedisKeys();
 
         String dirPath = this.DirectoryAbsolutePath;
         File dir = new File(dirPath);
@@ -107,6 +116,10 @@ public class DirectoryCrawler {
         String duration = null;
         String framerate;
         String frames;
+        String resolution;
+        String width;
+        String height;
+
         List<String> thumbArray = new ArrayList<>();
 
         //duration in seconds
@@ -137,11 +150,27 @@ public class DirectoryCrawler {
         frames = cmdOut[0];
         System.out.println("Frames: " + frames);
 
+        //resolution
+        cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
+        if (!"".equals(cmdOut[1])) {
+            System.out.println("ERROR getting Resolution: ");
+            System.out.println(cmdOut[1]);
+        }
+        width = cmdOut[0];
+        cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
+        if (!"".equals(cmdOut[1])) {
+            System.out.println("ERROR getting Resolution: ");
+            System.out.println(cmdOut[1]);
+        }
+        height = cmdOut[0];
+        resolution = width + "x" + height;
+        System.out.println("Resolution: " + resolution);
+
         //Thumbnails
         thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
         thumbArray.forEach(System.out::println);
 
-        System.out.println("\nRedis Insert:\n");
+        //System.out.println("\nRedis Insert:\n");
         //Creates Clip Object
         Clip clip = new Clip();
         clip.setName(file.getName());
@@ -160,13 +189,25 @@ public class DirectoryCrawler {
         clip.setDuration(duration);
         clip.setFps(framerate);
         clip.setFrames(frames);
-        //System.out.println("clip = " + clip.toString());
+        clip.setDescription("descripcion generica");
+        clip.setResolution(resolution);
+        System.out.println("clip = " + clip.toString());
 
+        System.out.println("Send Network Request:\n");
+
+        //POSTing in Resty
+        Gson gson = new Gson();
+        String jsonClip = gson.toJson(clip);
+        Map<String, String> clipMap = gson.fromJson(jsonClip, Map.class);
+        Resty resty = new Resty(Resty.Option.timeout(4000));
+        JSONObject jsonObject = new JSONObject(clipMap);
+        JSONResource json = resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject));
+        System.out.println("OBJETO: " + jsonObject);
         // push clips in redis
         //Jedis redis = new jedis();
         //redis.rpush("cliplist", json); // old list cliplist
-        RedisManager redis = new RedisManager();
-        redis.addClip(clip);
+        //RedisManager redis = new RedisManager();
+        //redis.addClip(clip);
         System.out.println("--------------------\n");
 
     }

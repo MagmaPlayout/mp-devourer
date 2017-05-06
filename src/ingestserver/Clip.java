@@ -16,12 +16,14 @@ public class Clip {
 
     private String name;
     private String path;
-    private String thumbnails;
-    //private List<Thumbnail> thumbnails;
+    //private String thumbnails;
+    private List<Thumbnail> thumbnails;
     private String duration;
-    private String fps;
-    private String frames;
+    private String frameRate;
+    private String frameCount;
     private String id;
+    private String description;
+    private String resolution;
 
     public long getId() {
         return Long.getLong(id);
@@ -33,7 +35,7 @@ public class Clip {
 
     @Override
     public String toString() {
-        return "Clip{" + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + fps + ", frames=" + frames + ", id=" + id + '}';
+        return "Clip{" + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + frameRate + ", frames=" + frameCount + ", id=" + id + '}';
     }
 
     /**
@@ -87,19 +89,14 @@ public class Clip {
             Thumbnail thumb = new Thumbnail();
             thumb.setPath(thumbstring);
             thumbList.add(thumb);
-
         }
-        Gson gson = new Gson();
-        String thumbString = gson.toJson(thumbList);
-        this.thumbnails = thumbString;
+        List<Thumbnail> newList = new ArrayList<Thumbnail>(thumbList);
+        //Gson gson = new Gson();
+        //String thumbString = gson.toJson(thumbList);
+        this.thumbnails = newList;
     }
 
-//    public void setThumbnails(List<String> thumblist) {
-    //        Gson gson = new Gson();
-    //        String thumbString = gson.toJson(thumblist);
-    //        this.thumbnails = thumbString;
-    //    }
-    public String getThumbnails() {
+    public List<Thumbnail> getThumbnails() {
         return thumbnails;
     }
 
@@ -124,7 +121,7 @@ public class Clip {
      * @return framerate
      */
     public String getFps() {
-        return fps;
+        return frameRate;
     }
 
     /**
@@ -132,23 +129,39 @@ public class Clip {
      * @param fps the framerate
      */
     public void setFps(String fps) {
-        this.fps = fps;
+        this.frameRate = fps;
     }
 
     /**
      *
-     * @return total number of frames in video
+     * @return total number of frameCount in video
      */
     public String getFrames() {
-        return frames;
+        return frameCount;
     }
 
     /**
      *
-     * @param frames the total number of frames in video
+     * @param frames the total number of frameCount in video
      */
     public void setFrames(String frames) {
-        this.frames = frames;
+        this.frameCount = frames;
+    }
+
+    void setDescription(String desc) {
+        this.description = desc;
+    }
+
+    String getDescription() {
+        return this.description;
+    }
+
+    void setResolution(String reso) {
+        this.resolution = reso;
+    }
+
+    String getResolution() {
+        return this.resolution;
     }
 
 }
