@@ -6,29 +6,14 @@
 package ingestserver;
 
 import com.google.gson.Gson;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.scene.transform.Affine;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.Response;
 import us.monoid.json.JSONObject;
-import us.monoid.web.AbstractContent;
-import us.monoid.web.Content;
-import us.monoid.web.FormData;
 import us.monoid.web.JSONResource;
 import us.monoid.web.Resty;
-import static us.monoid.web.Resty.data;
-import static us.monoid.web.Resty.form;
 
 /**
  * Given a directory. Walks it, analyzing each file and processing it if it's a
