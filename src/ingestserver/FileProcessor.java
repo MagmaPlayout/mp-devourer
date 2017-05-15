@@ -21,6 +21,7 @@ public class FileProcessor {
     private String ffprobe;
     private final String ffmpeg;
     private String mediaDirectory;
+    private String thumbDirectory;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
@@ -35,6 +36,7 @@ public class FileProcessor {
         this.ffmpeg = config.getFfmpeg();
         this.ffprobe = config.getFfprobe();
         this.mediaDirectory = config.getMediaDirectory();
+        this.thumbDirectory = config.getThumbnailDir() + "/thumbnails";
     }
 
     /**
@@ -74,6 +76,20 @@ public class FileProcessor {
      * @throws IOException
      */
     public List<String> generateThumbnailGIF(File file, String duration, String thumbCount) throws IOException {
+
+        //create /thumbnail directory if not exists
+        File thumbDirPath = new File(this.thumbDirectory);
+        if (thumbDirPath.exists()) {
+            System.out.println("thumbnail dir already exists");
+        } else {
+            System.out.println("thumbnail dir not exists, creating");
+            if (thumbDirPath.mkdir()) {
+                System.out.printf("Successfully created new file: %s%n", thumbDirPath.getAbsolutePath());
+            } else {
+                System.out.printf("Failed to create new file: %s%n", thumbDirPath.getAbsolutePath());
+            }
+        }
+
         String[] cmdOut;
         duration = duration.split("\\.")[0];
         List<String> thumbArray = new ArrayList<>();
@@ -84,7 +100,7 @@ public class FileProcessor {
         if (pos > 0) {
             fname = fname.substring(0, pos);
         }
-        File thumbDir = new File(file.getParent() + "/" + fname);
+        File thumbDir = new File(this.thumbDirectory + "/" + fname);
         thumbDir.mkdir();
 
         cmdOut = execFfmpeg("-i " + file.getAbsolutePath() + " -vf fps=" + thumbCount + "/" + duration + " " + thumbDir + "/" + fname + "_%03d.png ");

@@ -21,6 +21,7 @@ public class Config {
     private String homeDir = System.getProperty("user.home");
     private String dir = homeDir + "/.magma-playout";
     private String propFileName = homeDir + "/.magma-playout/ingestserver.properties";
+    private String thumbnailDir;
     private InputStream inputStream;
     private String redisHost;
     private String redisPort;
@@ -61,6 +62,7 @@ public class Config {
                     writer.write("media_directory=" + homeDir + "/Videos\n");
                     writer.write("ffmpeg_path=\n");
                     writer.write("ffprobe_path=\n");
+                    writer.write("thumbnail_dir= INSERT HERE YOUR /.../mp-installer/magma-playout/gui/mp-ui-playout/src/assets/img HERE\n");
                 }
                 if (success) {
                     System.out.printf("Successfully created new file: %s%n", f);
@@ -79,6 +81,7 @@ public class Config {
             this.mediaDirectory = prop.getProperty("media_directory");
             this.ffmpeg = prop.getProperty("ffmpeg_path");
             this.ffprobe = prop.getProperty("ffprobe_path");
+            this.thumbnailDir = prop.getProperty("thumbnail_dir");
         } catch (IOException e) {
             System.out.println("Exception: " + e);
         } finally {
@@ -138,6 +141,10 @@ public class Config {
 
     public String getMediaDirectory() {
         return mediaDirectory;
+    }
+
+    public String getThumbnailDir() {
+        return thumbnailDir;
     }
 
 }
