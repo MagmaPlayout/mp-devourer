@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ingestserver;
 
 import com.google.gson.Gson;
@@ -62,7 +57,9 @@ public class DirectoryCrawler {
                     try {
                         //process files
                         processFiles(aFile);
-                    } catch (Exception e) {
+                    } catch (IOException e) {
+                        System.out.println("An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
+                        System.exit(1);
                     }
                 }
             }
@@ -187,7 +184,7 @@ public class DirectoryCrawler {
         Resty resty = new Resty(Resty.Option.timeout(4000));
         JSONObject jsonObject = new JSONObject(clipMap);
         JSONResource json = resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject));
-        System.out.println("OBJETO: " + jsonObject);
+        System.out.println("Uploaded: " + jsonObject);
         // push clips in redis
         //Jedis redis = new jedis();
         //redis.rpush("cliplist", json); // old list cliplist

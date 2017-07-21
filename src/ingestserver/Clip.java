@@ -9,10 +9,8 @@ import java.util.List;
  * @author cyberpunx
  */
 public class Clip {
-
     private String name;
     private String path;
-    //private String thumbnails;
     private List<Thumbnail> thumbnails;
     private String duration;
     private String frameRate;
@@ -86,7 +84,7 @@ public class Clip {
             thumb.setPath(thumbstring);
             thumbList.add(thumb);
         }
-        List<Thumbnail> newList = new ArrayList<Thumbnail>(thumbList);
+        List<Thumbnail> newList = new ArrayList<>(thumbList);
         //Gson gson = new Gson();
         //String thumbString = gson.toJson(thumbList);
         this.thumbnails = newList;

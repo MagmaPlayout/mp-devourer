@@ -16,12 +16,14 @@ import java.util.Properties;
  *
  * @author cyberpunx
  */
+//TODO: use mp-libconfig project
+@Deprecated 
 public class Config {
 
     private String homeDir = System.getProperty("user.home");
     private String dir = homeDir + "/.magma-playout";
     private String propFileName = homeDir + "/.magma-playout/ingestserver.properties";
-    private String thumbnailDir;
+    private String thumbnailDir = "~/.magma-playout/";
     private InputStream inputStream;
     private String redisHost;
     private String redisPort;
