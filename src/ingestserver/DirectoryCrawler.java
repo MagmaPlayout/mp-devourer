@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import us.monoid.json.JSONObject;
-import us.monoid.web.JSONResource;
 import us.monoid.web.Resty;
 
 /**
@@ -59,6 +60,7 @@ public class DirectoryCrawler {
                         processFiles(aFile);
                     } catch (IOException e) {
                         System.out.println("An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
+                        System.out.println(e.getMessage());
                         System.exit(1);
                     }
                 }
@@ -183,13 +185,25 @@ public class DirectoryCrawler {
         Map<String, String> clipMap = gson.fromJson(jsonClip, Map.class);
         Resty resty = new Resty(Resty.Option.timeout(4000));
         JSONObject jsonObject = new JSONObject(clipMap);
-        JSONResource json = resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject));
-        System.out.println("Uploaded: " + jsonObject);
-        // push clips in redis
-        //Jedis redis = new jedis();
-        //redis.rpush("cliplist", json); // old list cliplist
-        //RedisManager redis = new RedisManager();
-        //redis.addClip(clip);
+        
+        String mediaId="";
+        try {
+            mediaId = (String)resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject)).get("id");
+        } catch (Exception ex) {
+            // Hubo algún problema con el post a medias
+            // TODO: handle
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(0);
+        }
+        // Le pongo el mediaId al clip y lo mando a la api de pieces
+        clip.setMediaId(mediaId);
+        //TODO: copypasteado
+        jsonClip = gson.toJson(clip);
+        clipMap = gson.fromJson(jsonClip, Map.class);
+        jsonObject = new JSONObject(clipMap);
+        //---
+        resty.json("http://localhost:8001/api/pieces", Resty.content(jsonObject));
+
         System.out.println("--------------------\n");
 
     }

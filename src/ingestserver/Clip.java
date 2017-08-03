@@ -18,6 +18,20 @@ public class Clip {
     private String id;
     private String description;
     private String resolution;
+    private String filterId, sketchId;
+    private String mediaId;
+
+    public void setFilterId(String filterId) {
+        this.filterId = filterId;
+    }
+
+    public void setSketchId(String sketchId) {
+        this.sketchId = sketchId;
+    }
+
+    public void setMediaId(String mediaId) {
+        this.mediaId = mediaId;
+    }
 
     public long getId() {
         return Long.getLong(id);
