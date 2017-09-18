@@ -96,6 +96,7 @@ public class DirectoryCrawler {
         String resolution;
         String width;
         String height;
+        String mlt;
 
         List<String> thumbArray = new ArrayList<>();
 
@@ -146,6 +147,10 @@ public class DirectoryCrawler {
         //Thumbnails
         thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
         thumbArray.forEach(System.out::println);
+        
+        //Generate .mlt
+        mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
+        System.out.println(mlt);
 
         //System.out.println("\nRedis Insert:\n");
         //Creates Clip Object
@@ -190,6 +195,7 @@ public class DirectoryCrawler {
         }
         // Le pongo el mediaId al clip y lo mando a la api de pieces
         clip.setMediaId(mediaId);
+        clip.setPath(mlt);
         //TODO: copypasteado
         jsonClip = gson.toJson(clip);
         clipMap = gson.fromJson(jsonClip, Map.class);

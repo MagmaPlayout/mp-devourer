@@ -25,6 +25,8 @@ public class FileProcessor {
     private String inDir;
     private String outDir;
     private String thumbDirectory;
+    private String meltPath;
+    private String fps;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
@@ -38,6 +40,8 @@ public class FileProcessor {
         this.inDir = cfg.getDevourerInputDir();
         this.outDir = cfg.getDevourerOutputDir();
         this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
+        this.meltPath = cfg.getDevourerMeltPath();
+        this.fps = Integer.toString(cfg.getMediasFPS());
     }
 
     /**
@@ -64,6 +68,15 @@ public class FileProcessor {
         int fpsint = (int) Math.ceil((double) part1 / part2); //rounds up
         String fps = Integer.toString(fpsint);
         return fps;
+    }
+    
+    public String createMltFile(String clip, String frameLen, String fps) throws IOException{
+        clip = clip.replace("\"", "");
+        String xmlPath;
+        xmlPath = clip.substring(0, clip.lastIndexOf('.'))+".mlt";
+        String cmdString = meltPath+" "+clip+" out="+frameLen+" length="+frameLen+" -consumer xml:"+xmlPath+" frame_rate_num="+fps;
+        execCmd(cmdString);        
+        return clip.substring(0, clip.lastIndexOf('.'))+".mlt";
     }
 
     /**
@@ -137,7 +150,7 @@ public class FileProcessor {
         } else {
             try {
                 System.out.println("TRANSCODING: " + inputString);
-                cmdOut = execFfmpeg("-i " + inputString + " -f avi -c:v libx264 -qp 0 " + outputString);
+                cmdOut = execFfmpeg("-i " + inputString + " -f avi -r "+this.fps+" -c:v libx264 -qp 0  " + outputString);
                 if (!"".equals(cmdOut[1])) {
                     System.out.println(cmdOut[1]);
                 }
