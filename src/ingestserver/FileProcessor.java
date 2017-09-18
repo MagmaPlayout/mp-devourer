@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import libconfig.ConfigurationManager;
 
 /**
  * Provide functions to process video files by FFmpeg/FFprobe. FFmpeg and
@@ -21,22 +22,22 @@ public class FileProcessor {
     private String ffprobe;
     private final String ffmpeg;
     private String mediaDirectory;
+    private String inDir;
+    private String outDir;
     private String thumbDirectory;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
      */
-    public FileProcessor() {
-        Config config = null;
-        try {
-            config = new Config();
-        } catch (IOException ex) {
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.ffmpeg = config.getFfmpeg();
-        this.ffprobe = config.getFfprobe();
-        this.mediaDirectory = config.getMediaDirectory();
-        this.thumbDirectory = config.getThumbnailDir() + "/thumbnails";
+    public FileProcessor() {    
+   
+        ConfigurationManager cfg = ConfigurationManager.getInstance();
+        this.ffmpeg = cfg.getDevourerFfmpegPath();
+        this.ffprobe = cfg.getDevourerFfprobePath();
+        this.mediaDirectory = cfg.getDevourerOutputDir();
+        this.inDir = cfg.getDevourerInputDir();
+        this.outDir = cfg.getDevourerOutputDir();
+        this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
     }
 
     /**
@@ -125,8 +126,11 @@ public class FileProcessor {
     public void transcodeLoselessH264(String inputString) {
         File input = new File(inputString);
         String[] cmdOut;
-        String outputString = this.mediaDirectory + "/output/" + input.getName();
+        String outputString = this.outDir + "/" + input.getName();
         File output = new File(outputString);
+        
+        System.out.println("Input file: "+inputString);
+        System.out.println("Output file: "+output);
 
         if (output.exists()) {
             System.out.println("FILE OUTPUT ALREADY EXISTS: " + outputString + " -- NO TRANSCODE DONE");

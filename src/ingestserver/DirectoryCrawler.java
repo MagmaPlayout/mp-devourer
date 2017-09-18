@@ -21,17 +21,10 @@ import us.monoid.web.Resty;
  * @author cyberpunx
  */
 public class DirectoryCrawler {
-
-    private String DirectoryAbsolutePath;
+   
     private FileProcessor fp;
-
-    /**
-     * Sets the directory to be processed
-     *
-     * @param absolutePath Aboslute path to the target directory
-     */
-    public DirectoryCrawler(String absolutePath) {
-        this.DirectoryAbsolutePath = absolutePath;
+   
+    public DirectoryCrawler() {
         fp = new FileProcessor();
     }
 
@@ -39,19 +32,19 @@ public class DirectoryCrawler {
      * Walks the directory tree and analyzes each file. Processing all the video
      * files found.
      */
-    public void analyze() {
+    public void analyze(String directory) {
         // Setup Redis and deletes all previous keys. We start from 0 each time.
         //RedisManager redis = new RedisManager();
         //redis.resetRedisKeys();
 
-        String dirPath = this.DirectoryAbsolutePath;
+        String dirPath = directory;
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
 
         if (files.length == 0) {
             System.out.println("The directory is empty");
         } else {
-            System.out.println("ANALIZING: " + this.DirectoryAbsolutePath + "\n\n");
+            System.out.println("ANALIZING: " + directory + "\n\n");
             for (File aFile : files) {
                 if (fp.isCorrectFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
@@ -68,8 +61,8 @@ public class DirectoryCrawler {
         }
     }
 
-    public void transcodeInputDirectory() {
-        String dirPath = this.DirectoryAbsolutePath + "/input";
+    public void transcodeDirectory(String directory) {
+        String dirPath = directory;
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
 
