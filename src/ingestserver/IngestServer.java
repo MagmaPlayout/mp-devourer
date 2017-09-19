@@ -13,9 +13,6 @@ import libconfig.ConfigurationManager;
  */
 public class IngestServer {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         IngestServer is = new IngestServer();
         is.run();
