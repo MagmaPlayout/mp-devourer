@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 import us.monoid.web.Resty;
 
@@ -195,13 +196,20 @@ public class DirectoryCrawler {
         JSONObject jsonObject = new JSONObject(clipMap);
         
         String mediaId="";
+        String mediaName="---";
         try {
+            try {
+                mediaName = jsonObject.getString("name");
+            } catch (JSONException e) {}
+            
             mediaId = (String)resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject)).get("id");
-        } catch (Exception ex) {
+        } catch (IOException e) {
             // Hubo algún problema con el post a medias
-            // TODO: handle
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(0);
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "A media with the same name \""+mediaName+"\" already exists! Quiting...");
+            System.exit(1);
+        } catch (Exception e) {
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using medias API. Quiting...\n{0}", e.getMessage());
+            System.exit(1);
         }
         // Le pongo el mediaId al clip y lo mando a la api de pieces
         clip.setMediaId(mediaId);

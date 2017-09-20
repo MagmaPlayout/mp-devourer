@@ -34,13 +34,14 @@ public class FileProcessor {
     public FileProcessor() {    
    
         ConfigurationManager cfg = ConfigurationManager.getInstance();
-        this.ffmpeg = cfg.getDevourerFfmpegPath();
-        this.ffprobe = cfg.getDevourerFfprobePath();
+        String mltFwPath = cfg.getMltFrameworkPath();
+        this.ffmpeg = mltFwPath+"/ffmpeg";
+        this.ffprobe = mltFwPath+"/ffprobe";
+        this.meltPath = mltFwPath+"/melt";
         this.mediaDirectory = cfg.getDevourerOutputDir();
         this.inDir = cfg.getDevourerInputDir();
         this.outDir = cfg.getDevourerOutputDir();
         this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
-        this.meltPath = cfg.getDevourerMeltPath();
         this.fps = Integer.toString(cfg.getMediasFPS());
     }
 
