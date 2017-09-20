@@ -1,7 +1,5 @@
 package ingestserver;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import libconfig.ConfigurationManager;
@@ -20,7 +18,6 @@ public class IngestServer {
 
     private void run(){
         // Config
-        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tT %4$s   %5$s%6$s%n"); // TODO: restore full log. For debugging I removed some stuff from it
         Logger logger = Logger.getLogger(IngestServer.class.getName());
         ConfigurationManager cfg = ConfigurationManager.getInstance();
         cfg.init(logger);
@@ -35,6 +32,6 @@ public class IngestServer {
         DirectoryCrawler dc = new DirectoryCrawler();
         dc.transcodeDirectory(cfg.getDevourerInputDir());
         dc.analyze(cfg.getDevourerOutputDir());
-        System.out.println("DONE!");
+        logger.log(Level.INFO, "Done!");
     }
 }

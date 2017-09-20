@@ -41,6 +41,11 @@ public class DirectoryCrawler {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
 
+        if(files == null){
+            System.out.println("No files to analyze in the specified directory!");
+            return;
+        }
+
         if (files.length == 0) {
             System.out.println("The directory is empty");
         } else {
@@ -65,6 +70,11 @@ public class DirectoryCrawler {
         String dirPath = directory;
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
+
+        if(files == null){
+            System.out.println("No files to transcode in the specified directory!");
+            return;
+        }
 
         if (files.length == 0) {
             System.out.println("The directory is empty");
