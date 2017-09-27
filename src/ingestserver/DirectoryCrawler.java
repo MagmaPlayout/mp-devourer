@@ -108,6 +108,7 @@ public class DirectoryCrawler {
         String width;
         String height;
         String mlt;
+        String provider;
 
         List<String> thumbArray = new ArrayList<>();
 
@@ -162,6 +163,9 @@ public class DirectoryCrawler {
         //Generate .mlt
         mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
         System.out.println(mlt);
+        
+        //get Provider
+        provider = file.getParentFile().getName();
 
         //System.out.println("\nRedis Insert:\n");
         //Creates Clip Object
@@ -184,6 +188,7 @@ public class DirectoryCrawler {
         clip.setFrames(frames);
         clip.setDescription("descripcion generica");
         clip.setResolution(resolution);
+        clip.setProvider(provider);
         System.out.println("clip = " + clip.toString());
 
         System.out.println("Send Network Request:\n");

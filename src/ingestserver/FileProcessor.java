@@ -139,8 +139,10 @@ public class FileProcessor {
 
     public void transcodeLoselessH264(String inputString) {
         File input = new File(inputString);
+        String provider = input.getParentFile().getName();
+        new File(this.outDir+"/"+provider).mkdirs(); // Creates output/provider folder        
         String[] cmdOut;
-        String outputString = this.outDir + "/" + input.getName();
+        String outputString = this.outDir + "/" + provider+ "/" +input.getName();
         File output = new File(outputString);
         
         System.out.println("Input file: "+inputString);
