@@ -77,11 +77,12 @@ public class IngestServer {
         // TRANSCODE FIRST
         File[] inputFolders = new File(cfg.getDevourerInputDir()).listFiles();
         DirectoryCrawler dc = new DirectoryCrawler();
-        for (File file : inputFolders) {
+        for (File file : inputFolders) { //Transcode Providers
             if (file.isDirectory()) {
                 dc.transcodeDirectory(file.getAbsolutePath());
             } 
         }
+        dc.transcodeDirectory(cfg.getDevourerInputDir()); //Transcode "Default" provider (input folder)
         
         // ANALYZE TRANSCODED FILES
         File[] ouputFolders = new File(cfg.getDevourerOutputDir()).listFiles();
@@ -89,7 +90,7 @@ public class IngestServer {
             if (file.isDirectory()) {
                 dc.analyze(file.getAbsolutePath());
             } 
-        }       
+        }
         
         logger.log(Level.INFO, "Done!");
     }
