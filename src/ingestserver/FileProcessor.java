@@ -27,6 +27,7 @@ public class FileProcessor {
     private String thumbDirectory;
     private String meltPath;
     private String fps;
+    private String ffmpegArgs;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
@@ -43,6 +44,7 @@ public class FileProcessor {
         this.outDir = cfg.getDevourerOutputDir();
         this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
         this.fps = Integer.toString(cfg.getMediasFPS());
+        this.ffmpegArgs = cfg.getDevourerFfmpegArgs();
     }
 
     /**
@@ -137,7 +139,7 @@ public class FileProcessor {
         return thumbArray;
     }
 
-    public void transcodeLoselessH264(String inputString) {
+    public void transcode(String inputString) {
         File input = new File(inputString);
         String provider = input.getParentFile().getName();
              
@@ -164,7 +166,7 @@ public class FileProcessor {
         } else {
             try {
                 System.out.println("TRANSCODING: " + inputString);
-                cmdOut = execFfmpeg("-i " + inputString + " -f avi -r "+this.fps+" -c:v libx264 -qp 0  " + outputString);
+                cmdOut = execFfmpeg("-i " + inputString +" -r " + this.fps + " " +this.ffmpegArgs + " " + outputString);
                 if (!"".equals(cmdOut[1])) {
                     System.out.println(cmdOut[1]);
                 }

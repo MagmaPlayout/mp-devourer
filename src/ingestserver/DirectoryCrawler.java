@@ -86,7 +86,7 @@ public class DirectoryCrawler {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
                     try {
                         //transcode files
-                        fp.transcodeLoselessH264(aFile.getAbsolutePath());
+                        fp.transcode(aFile.getAbsolutePath());
                     } catch (Exception e) {
                     }
                 }
