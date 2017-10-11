@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
+import us.monoid.web.JSONResource;
 import us.monoid.web.Resty;
 
 /**
@@ -167,8 +169,6 @@ public class DirectoryCrawler {
         //get Provider
         provider = file.getParentFile().getName();
 
-        //System.out.println("\nRedis Insert:\n");
-        //Creates Clip Object
         Clip clip = new Clip();
         clip.setName(file.getName());
         clip.setPath(file.getAbsolutePath());
@@ -190,8 +190,7 @@ public class DirectoryCrawler {
         clip.setResolution(resolution);
         clip.setProvider(provider);
         System.out.println("clip = " + clip.toString());
-
-        System.out.println("Send Network Request:\n");
+        System.out.println("Send Network Request to playout-api/medias:\n");
 
         //POSTing in Resty
         Gson gson = new Gson();
@@ -208,6 +207,7 @@ public class DirectoryCrawler {
             } catch (JSONException e) {}
             
             mediaId = (String)resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject)).get("id");
+            System.out.println("mediaid:" +mediaId);
         } catch (IOException e) {
             // Hubo algún problema con el post a medias
             Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "A media with the same name \""+mediaName+"\" already exists! Quiting...");
@@ -216,15 +216,58 @@ public class DirectoryCrawler {
             Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using medias API. Quiting...\n{0}", e.getMessage());
             System.exit(1);
         }
+        
+        
+        
+        
         // Le pongo el mediaId al clip y lo mando a la api de pieces
         clip.setMediaId(mediaId);
         clip.setPath(mlt);
         //TODO: copypasteado
         jsonClip = gson.toJson(clip);
         clipMap = gson.fromJson(jsonClip, Map.class);
-        jsonObject = new JSONObject(clipMap);
-        //---
+        jsonObject = new JSONObject(clipMap);     
+        System.out.println("clip = " + clip.toString());
+        System.out.println("Send Network Request to playout-api/pieces:\n");
         resty.json("http://localhost:8001/api/pieces", Resty.content(jsonObject));
+        
+        
+        // Agarro el supplier del clip y pregunto si existe antes de insertarlo
+        System.out.println("clip = " + clip.toString());
+        System.out.println("Send Network Request to admin-api/supplier/name/"+provider);
+        String supplierId=".";
+        JSONResource supplierResource = new JSONResource();
+        try{
+            //JSONArray supplierResource = resty.json("http://localhost:8080/api/supplier/name/"+provider).array();
+            supplierResource = resty.json("http://localhost:8080/api/supplier/name/"+provider);
+            if(supplierResource.object().length() == 0  ){
+                System.out.println("JSON SUPPLIER IS NULL, INSERT NEW ONE");
+                supplierId = (String)resty.json("http://localhost:8080/api/supplier", Resty.content(jsonObject)).get("id");                        
+            }else{
+                System.out.println("JSON SUPPLIER IS NOT NULL, GET EXISTENT ID"); 
+                supplierId = (String) supplierResource.get("id");
+            }
+            
+        } catch (IOException e) {
+            // Hubo algún problema con el post a supplier
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \""+provider+"\"! Quiting...");
+            System.exit(1);
+        }catch (Exception e) {
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        // Agarro el supplier id, se lo cargo al clip y lo mando a rawMedias
+        clip.setSupplierId(supplierId);
+        jsonClip = gson.toJson(clip);
+        clipMap = gson.fromJson(jsonClip, Map.class);
+        jsonObject = new JSONObject(clipMap);        
+        
+        System.out.println("clip = " + clip.toString());
+        System.out.println("Send Network Request to playout-api/rawMedia:\n");
+        // Envio a la Admin Api para RawMedia
+        resty.json("http://localhost:8080/api/rawMedia", Resty.content(jsonObject));
 
         System.out.println("--------------------\n");
 
