@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import us.monoid.json.JSONArray;
+import libconfig.ConfigurationManager;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 import us.monoid.web.JSONResource;
@@ -24,11 +24,16 @@ import us.monoid.web.Resty;
  * @author cyberpunx
  */
 public class DirectoryCrawler {
-   
-    private FileProcessor fp;
+    private final FileProcessor fp;
+    private final String playoutApiBaseUrl;
+    private final String adminApiBaseUrl;
    
     public DirectoryCrawler() {
-        fp = new FileProcessor();
+        this.fp = new FileProcessor();
+
+        ConfigurationManager cfg = ConfigurationManager.getInstance();
+        this.playoutApiBaseUrl = cfg.getPlayoutAPIRestBaseUrl();
+        this.adminApiBaseUrl = cfg.getAdminAPIRestBaseUrl();
     }
 
     /**
@@ -103,7 +108,7 @@ public class DirectoryCrawler {
         System.out.println("--------------------\n");
 
         String[] cmdOut;
-        String duration = null;
+        String duration;
         String framerate;
         String frames;
         String resolution;
@@ -111,8 +116,6 @@ public class DirectoryCrawler {
         String height;
         String mlt;
         String provider;
-
-        List<String> thumbArray = new ArrayList<>();
 
         //duration in seconds
         cmdOut = fp.execFfprobe("-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
@@ -159,7 +162,7 @@ public class DirectoryCrawler {
         System.out.println("Resolution: " + resolution);
 
         //Thumbnails
-        thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
+        List<String> thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
         thumbArray.forEach(System.out::println);
         
         //Generate .mlt
@@ -206,19 +209,16 @@ public class DirectoryCrawler {
                 mediaName = jsonObject.getString("name");
             } catch (JSONException e) {}
             
-            mediaId = (String)resty.json("http://localhost:8001/api/medias", Resty.content(jsonObject)).get("id");
+            mediaId = (String)resty.json(playoutApiBaseUrl+"medias", Resty.content(jsonObject)).get("id");
             System.out.println("mediaid:" +mediaId);
         } catch (IOException e) {
             // Hubo algún problema con el post a medias
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "A media with the same name \""+mediaName+"\" already exists! Quiting...");
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "A media with the same name \"{0}\" already exists! Quiting...", mediaName);
             System.exit(1);
         } catch (Exception e) {
             Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using medias API. Quiting...\n{0}", e.getMessage());
             System.exit(1);
         }
-        
-        
-        
         
         // Le pongo el mediaId al clip y lo mando a la api de pieces
         clip.setMediaId(mediaId);
@@ -229,20 +229,20 @@ public class DirectoryCrawler {
         jsonObject = new JSONObject(clipMap);     
         System.out.println("clip = " + clip.toString());
         System.out.println("Send Network Request to playout-api/pieces:\n");
-        resty.json("http://localhost:8001/api/pieces", Resty.content(jsonObject));
+        resty.json(playoutApiBaseUrl+"pieces", Resty.content(jsonObject));
         
         
         // Agarro el supplier del clip y pregunto si existe antes de insertarlo
         System.out.println("clip = " + clip.toString());
         System.out.println("Send Network Request to admin-api/supplier/name/"+provider);
         String supplierId=".";
-        JSONResource supplierResource = new JSONResource();
+        JSONResource supplierResource;
         try{
-            //JSONArray supplierResource = resty.json("http://localhost:8080/api/supplier/name/"+provider).array();
-            supplierResource = resty.json("http://localhost:8080/api/supplier/name/"+provider);
+            //JSONArray supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+provider).array();
+            supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+provider);
             if(supplierResource.object().length() == 0  ){
                 System.out.println("JSON SUPPLIER IS NULL, INSERT NEW ONE");
-                supplierId = (String)resty.json("http://localhost:8080/api/supplier", Resty.content(jsonObject)).get("id");                        
+                supplierId = (String)resty.json(adminApiBaseUrl+"supplier", Resty.content(jsonObject)).get("id");
             }else{
                 System.out.println("JSON SUPPLIER IS NOT NULL, GET EXISTENT ID"); 
                 supplierId = (String) supplierResource.get("id");
@@ -250,7 +250,7 @@ public class DirectoryCrawler {
             
         } catch (IOException e) {
             // Hubo algún problema con el post a supplier
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \""+provider+"\"! Quiting...");
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", provider);
             System.exit(1);
         }catch (Exception e) {
             Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
@@ -267,7 +267,7 @@ public class DirectoryCrawler {
         System.out.println("clip = " + clip.toString());
         System.out.println("Send Network Request to playout-api/rawMedia:\n");
         // Envio a la Admin Api para RawMedia
-        resty.json("http://localhost:8080/api/rawMedia", Resty.content(jsonObject));
+        resty.json(adminApiBaseUrl+"rawMedia", Resty.content(jsonObject));
 
         System.out.println("--------------------\n");
 
