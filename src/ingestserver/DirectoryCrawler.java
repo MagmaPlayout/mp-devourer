@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -39,19 +40,21 @@ public class DirectoryCrawler {
     /**
      * Walks the directory tree and analyzes each file. Processing all the video
      * files found.
+     * @param directory
+     * @param processedFiles HashMap that will be populated with a key (piece id) and a value (it's corresponding Clip)
+     * @return
      */
-    public void analyze(String directory) {
+    public HashMap<Integer, Clip> analyze(String directory, HashMap<Integer, Clip> processedFiles) {
         // Setup Redis and deletes all previous keys. We start from 0 each time.
         //RedisManager redis = new RedisManager();
         //redis.resetRedisKeys();
-
         String dirPath = directory;
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
 
         if(files == null){
             System.out.println("No files to analyze in the specified directory!");
-            return;
+            return processedFiles;
         }
 
         if (files.length == 0) {
@@ -63,7 +66,7 @@ public class DirectoryCrawler {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
                     try {
                         //process files
-                        processFiles(aFile);
+                        processFile(aFile, processedFiles);
                     } catch (IOException e) {
                         System.out.println("An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
                         System.out.println(e.getMessage());
@@ -72,6 +75,8 @@ public class DirectoryCrawler {
                 }
             }
         }
+
+        return processedFiles;
     }
 
     public void transcodeDirectory(String directory) {
@@ -95,6 +100,7 @@ public class DirectoryCrawler {
                         //transcode files
                         fp.transcode(aFile.getAbsolutePath());
                     } catch (Exception e) {
+                        //TODO: HANDLE
                     }
                 }
             }
@@ -102,8 +108,7 @@ public class DirectoryCrawler {
 
     }
 
-    private void processFiles(File file) throws IOException {
-
+    private HashMap<Integer, Clip> processFile(File file, HashMap<Integer, Clip> processedFiles) throws IOException {
         System.out.println("Processing file: " + file.getAbsolutePath());
         System.out.println("--------------------\n");
 
@@ -229,8 +234,19 @@ public class DirectoryCrawler {
         jsonObject = new JSONObject(clipMap);     
         System.out.println("clip = " + clip.toString());
         System.out.println("Send Network Request to playout-api/pieces:\n");
-        resty.json(playoutApiBaseUrl+"pieces", Resty.content(jsonObject));
-        
+        JSONResource insertedResult = resty.json(playoutApiBaseUrl+"pieces", Resty.content(jsonObject));
+
+        try {
+            int pieceId = Integer.parseInt(insertedResult.toObject().get("id").toString()); // get's piece id from result
+            processedFiles.put(pieceId, clip); // Put's a new entry into the processedFiles so that later, someone changes the .mlt file to include the pieceId
+
+        } catch (JSONException ex) {
+            // TODO: HANDLE
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NumberFormatException ex){
+            // TODO: HANDLE
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         // Agarro el supplier del clip y pregunto si existe antes de insertarlo
         System.out.println("clip = " + clip.toString());
@@ -270,7 +286,7 @@ public class DirectoryCrawler {
         resty.json(adminApiBaseUrl+"rawMedia", Resty.content(jsonObject));
 
         System.out.println("--------------------\n");
-
+        
+        return processedFiles;
     }
-
 }

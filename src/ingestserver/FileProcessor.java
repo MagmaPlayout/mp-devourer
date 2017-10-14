@@ -18,28 +18,24 @@ import libconfig.ConfigurationManager;
  * @author cyberpunx
  */
 public class FileProcessor {
-
-    private String ffprobe;
+    private final String ffprobe;
     private final String ffmpeg;
-    private String mediaDirectory;
-    private String inDir;
-    private String outDir;
-    private String thumbDirectory;
-    private String meltPath;
-    private String fps;
-    private String ffmpegArgs;
+    private final String inDir;
+    private final String outDir;
+    private final String thumbDirectory;
+    private final String meltPath;
+    private final String fps;
+    private final String ffmpegArgs;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
      */
-    public FileProcessor() {    
-   
+    public FileProcessor() {
         ConfigurationManager cfg = ConfigurationManager.getInstance();
         String mltFwPath = cfg.getMltFrameworkPath();
         this.ffmpeg = mltFwPath+"/ffmpeg";
         this.ffprobe = mltFwPath+"/ffprobe";
         this.meltPath = mltFwPath+"/melt";
-        this.mediaDirectory = cfg.getDevourerOutputDir();
         this.inDir = cfg.getDevourerInputDir();
         this.outDir = cfg.getDevourerOutputDir();
         this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";

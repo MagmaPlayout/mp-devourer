@@ -1,8 +1,11 @@
 package ingestserver;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
 import libconfig.ConfigurationManager;
 
 //TODO: replace al System.out with logger.log
@@ -24,55 +27,11 @@ public class IngestServer {
         cfg.init(logger);
         cfg.printConfig(logger);
         
-        // CHECKS CONFIGURATION FILE
-        
-        // checks FFMPEG
-        File ffmpegPath = new File(cfg.getMltFrameworkPath()+"/ffmpeg");
-        if(ffmpegPath.exists() && !ffmpegPath.isDirectory()) { 
-            logger.log(Level.INFO, "FFMPEG: Config OK");
-        }else{
-            logger.log(Level.INFO, "FFMPEG: Config ERROR");
+        if(!checkConfig(cfg, logger)){
+            System.exit(1);
         }
-        // checks FFPROBE
-        File ffprobePath = new File(cfg.getMltFrameworkPath()+"/ffprobe");
-        if(ffprobePath.exists() && !ffprobePath.isDirectory()) { 
-            logger.log(Level.INFO, "FFPROBE: Config OK");
-        }else{
-            logger.log(Level.INFO, "FFPROBE: Config ERROR");
-        }
-        
-        // checks INPUT DIR
-        File inputPath = new File(cfg.getDevourerInputDir());
-        if(inputPath.exists()) { 
-            logger.log(Level.INFO, "INPUT DIR: Config OK");
-        }else{
-            logger.log(Level.INFO, "INPUT DIR: Config ERROR");
-        }
-        
-        // checks OUTPUT DIR
-        File outputPath = new File(cfg.getDevourerOutputDir());
-        if(outputPath.exists()) { 
-            logger.log(Level.INFO, "OUTPUT DIR: Config OK");
-        }else{
-            logger.log(Level.INFO, "OUTPUT DIR: Config ERROR");
-        }
-        
-        // checks THUMBS DIR
-        File thumbsPath = new File(cfg.getDevourerThumbDir());
-        if(thumbsPath.exists()) { 
-            logger.log(Level.INFO, "THUMBS DIR: Config OK");
-        }else{
-            logger.log(Level.INFO, "THUMBS DIR: Config ERROR");
-        }
-        // END CONFIG FILE CHECK
-        
-        
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(IngestServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+
+//TODO: no procesar archivos ya procesados. El input se puede borrar y traer medias nuevos, pero el output puede tener cosas viejas procesadas previamente
         
         // TRANSCODE FIRST
         File[] inputFolders = new File(cfg.getDevourerInputDir()).listFiles();
@@ -85,13 +44,76 @@ public class IngestServer {
         dc.transcodeDirectory(cfg.getDevourerInputDir()); //Transcode "Default" provider (input folder)
         
         // ANALYZE TRANSCODED FILES
-        File[] ouputFolders = new File(cfg.getDevourerOutputDir()).listFiles();
-        for (File file : ouputFolders) {
+        HashMap<Integer, Clip> processedFiles = new HashMap<>();
+        File[] outputFolders = new File(cfg.getDevourerOutputDir()).listFiles();
+        for (File file : outputFolders) {
             if (file.isDirectory()) {
-                dc.analyze(file.getAbsolutePath());
+                dc.analyze(file.getAbsolutePath(), processedFiles);
             } 
+        }
+
+        // Modifies each .mlt file to insert the piece ID as "title" attribute
+        try {
+            
+            MltProcessor mltProc = new MltProcessor();
+            mltProc.processMlts(processedFiles);
+
+        } catch (ParserConfigurationException ex) {
+            //TODO: HANDLE
+            Logger.getLogger(IngestServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerConfigurationException ex) {
+            //TODO: HANDLE
+            Logger.getLogger(IngestServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         logger.log(Level.INFO, "Done!");
+    }
+
+    /**
+     * Checks configuration file for mandatory entries.
+     * 
+     * @param cfg
+     * @param logger
+     * @return
+     */
+    private boolean checkConfig(ConfigurationManager cfg, Logger logger){
+        boolean ok = true;
+
+        // checks FFMPEG
+        File ffmpegPath = new File(cfg.getMltFrameworkPath()+"/ffmpeg");
+        if(!ffmpegPath.exists() || ffmpegPath.isDirectory()) {
+            logger.log(Level.SEVERE, "FFMPEG: Config ERROR");
+            ok = false;
+        }
+
+        // checks FFPROBE
+        File ffprobePath = new File(cfg.getMltFrameworkPath()+"/ffprobe");
+        if(!ffprobePath.exists() || ffprobePath.isDirectory()) {
+            logger.log(Level.SEVERE, "FFPROBE: Config ERROR");
+            ok = false;
+        }
+
+        // checks INPUT DIR
+        File inputPath = new File(cfg.getDevourerInputDir());
+        if(!inputPath.exists()) {
+            logger.log(Level.SEVERE, "INPUT DIR: Config ERROR");
+            ok = false;
+        }
+
+        // checks OUTPUT DIR
+        File outputPath = new File(cfg.getDevourerOutputDir());
+        if(!outputPath.exists()) {
+            logger.log(Level.SEVERE, "OUTPUT DIR: Config ERROR");
+            ok = false;
+        }
+
+        // checks THUMBS DIR
+        File thumbsPath = new File(cfg.getDevourerThumbDir());
+        if(!thumbsPath.exists()) {
+            logger.log(Level.SEVERE, "THUMBS DIR: Config ERROR");
+            ok = false;
+        }
+
+        return ok;
     }
 }
