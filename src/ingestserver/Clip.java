@@ -20,15 +20,15 @@ public class Clip {
     private String resolution;
     private String filterId, sketchId;
     private String mediaId;
-    private String provider;
+    private String supplier;
     private String supplierId;
 
-    public String getProvider() {
-        return provider;
+    public String getSupplier() {
+        return supplier;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
     }
 
     public void setFilterId(String filterId) {
@@ -53,7 +53,7 @@ public class Clip {
 
     @Override
     public String toString() {
-        return "Clip{" + "id=" + id + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + frameRate + ", frames=" + frameCount + ", id=" + mediaId + ", provider=" + provider + ", supplierId=" + supplierId +'}';
+        return "Clip{" + "id=" + id + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + frameRate + ", frames=" + frameCount + ", id=" + mediaId + ", supplier=" + supplier + ", supplierId=" + supplierId +'}';
     }
 
     /**

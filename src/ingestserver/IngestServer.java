@@ -41,7 +41,7 @@ public class IngestServer {
                 dc.transcodeDirectory(file.getAbsolutePath());
             } 
         }
-        dc.transcodeDirectory(cfg.getDevourerInputDir()); //Transcode "Default" provider (input folder)
+        dc.transcodeDirectory(cfg.getDevourerInputDir()); //Transcode "Default" supplier (input folder)
         
         // ANALYZE TRANSCODED FILES
         HashMap<Integer, Clip> processedFiles = new HashMap<>();

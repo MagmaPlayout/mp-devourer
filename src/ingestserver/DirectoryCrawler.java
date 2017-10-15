@@ -120,7 +120,7 @@ public class DirectoryCrawler {
         String width;
         String height;
         String mlt;
-        String provider;
+        String supplier;
 
         //duration in seconds
         cmdOut = fp.execFfprobe("-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
@@ -174,8 +174,8 @@ public class DirectoryCrawler {
         mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
         System.out.println(mlt);
         
-        //get Provider
-        provider = file.getParentFile().getName();
+        //get Supplier
+        supplier = file.getParentFile().getName();
 
         Clip clip = new Clip();
         clip.setName(file.getName());
@@ -196,7 +196,7 @@ public class DirectoryCrawler {
         clip.setFrames(frames);
         clip.setDescription("descripcion generica");
         clip.setResolution(resolution);
-        clip.setProvider(provider);
+        clip.setSupplier(supplier);
         System.out.println("clip = " + clip.toString());
         System.out.println("Send Network Request to playout-api/medias:\n");
 
@@ -250,12 +250,12 @@ public class DirectoryCrawler {
         
         // Agarro el supplier del clip y pregunto si existe antes de insertarlo
         System.out.println("clip = " + clip.toString());
-        System.out.println("Send Network Request to admin-api/supplier/name/"+provider);
+        System.out.println("Send Network Request to admin-api/supplier/name/"+supplier);
         String supplierId=".";
         JSONResource supplierResource;
         try{
-            //JSONArray supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+provider).array();
-            supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+provider);
+            //JSONArray supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+supplier).array();
+            supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+supplier);
             if(supplierResource.object().length() == 0  ){
                 System.out.println("JSON SUPPLIER IS NULL, INSERT NEW ONE");
                 supplierId = (String)resty.json(adminApiBaseUrl+"supplier", Resty.content(jsonObject)).get("id");
@@ -266,7 +266,7 @@ public class DirectoryCrawler {
             
         } catch (IOException e) {
             // Hubo algún problema con el post a supplier
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", provider);
+            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", supplier);
             System.exit(1);
         }catch (Exception e) {
             Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
