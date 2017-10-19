@@ -233,6 +233,10 @@ public class DirectoryCrawler {
         clipMap = gson.fromJson(jsonClip, Map.class);
         jsonObject = new JSONObject(clipMap);     
         System.out.println("clip = " + clip.toString());
+        
+        System.out.println("Send Network Request to playout-api/thumbnails:\n");
+        JSONResource insertedThumbResult = resty.json(playoutApiBaseUrl+"thumbnails", Resty.content(jsonObject));
+        
         System.out.println("Send Network Request to playout-api/pieces:\n");
         JSONResource insertedResult = resty.json(playoutApiBaseUrl+"pieces", Resty.content(jsonObject));
 
