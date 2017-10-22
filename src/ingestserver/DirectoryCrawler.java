@@ -3,6 +3,7 @@ package ingestserver;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +29,11 @@ public class DirectoryCrawler {
     private final FileProcessor fp;
     private final String playoutApiBaseUrl;
     private final String adminApiBaseUrl;
+    private final Logger logger;
    
-    public DirectoryCrawler() {
-        this.fp = new FileProcessor();
+    public DirectoryCrawler(Logger logger) {
+        this.fp = new FileProcessor(logger);
+        this.logger = logger;
 
         ConfigurationManager cfg = ConfigurationManager.getInstance();
         this.playoutApiBaseUrl = cfg.getPlayoutAPIRestBaseUrl();
@@ -53,14 +56,14 @@ public class DirectoryCrawler {
         File[] files = dir.listFiles();
 
         if(files == null){
-            System.out.println("No files to analyze in the specified directory!");
+            logger.log(Level.INFO, "No files to analyze in the specified directory!");
             return processedFiles;
         }
 
         if (files.length == 0) {
-            System.out.println("The directory is empty");
+            logger.log(Level.INFO, "The directory is empty");
         } else {
-            System.out.println("ANALIZING: " + directory + "\n\n");
+            logger.log(Level.INFO, "ANALIZING: " + directory + "\n\n");
             for (File aFile : files) {
                 if (fp.isCorrectFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
@@ -68,8 +71,8 @@ public class DirectoryCrawler {
                         //process files
                         processFile(aFile, processedFiles);
                     } catch (IOException e) {
-                        System.out.println("An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
-                        System.out.println(e.getMessage());
+                        logger.log(Level.SEVERE, "An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
+                        logger.log(Level.SEVERE, e.getMessage());
                         System.exit(1);
                     }
                 }
@@ -85,14 +88,14 @@ public class DirectoryCrawler {
         File[] files = dir.listFiles();
 
         if(files == null){
-            System.out.println("No files to transcode in the specified directory!");
+            logger.log(Level.INFO, "No files to transcode in the specified directory!");
             return;
         }
 
         if (files.length == 0) {
-            System.out.println("The directory is empty");
+            logger.log(Level.INFO, "The directory is empty");
         } else {
-            System.out.println("TRANSCODING DIRECTORY: " + dirPath + "\n\n");
+            logger.log(Level.INFO, "TRANSCODING DIRECTORY: " + dirPath + "\n\n");
             for (File aFile : files) {
                 if (fp.isCorrectFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
@@ -109,8 +112,7 @@ public class DirectoryCrawler {
     }
 
     private HashMap<Integer, Clip> processFile(File file, HashMap<Integer, Clip> processedFiles) throws IOException {
-        System.out.println("Processing file: " + file.getAbsolutePath());
-        System.out.println("--------------------\n");
+        logger.log(Level.INFO, "Processing file: " + file.getAbsolutePath());
 
         String[] cmdOut;
         String duration;
@@ -125,54 +127,56 @@ public class DirectoryCrawler {
         //duration in seconds
         cmdOut = fp.execFfprobe("-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
         if (!"".equals(cmdOut[1])) {
-            System.out.println("ERROR getting Duration: ");
-            System.out.println(cmdOut[1]);
+            logger.log(Level.SEVERE, "ERROR getting Duration: ");
+            logger.log(Level.SEVERE, cmdOut[1]);
         }
         String duration2 = cmdOut[0];
         duration = fp.secondsToDuration(cmdOut[0]);
-        System.out.println("Duration: " + duration);
 
         //framerate
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
         if (!"".equals(cmdOut[1])) {
-            System.out.println("ERROR getting Framerate: ");
-            System.out.println(cmdOut[1]);
+            logger.log(Level.SEVERE, "ERROR getting Framerate: ");
+            logger.log(Level.SEVERE, cmdOut[1]);
         }
         framerate = fp.getFPS(cmdOut[0]);
-        System.out.println("Framerate: " + framerate);
 
         //frames
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=nb_frames -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
         if (!"".equals(cmdOut[1])) {
-            System.out.println("ERROR getting Frames: ");
-            System.out.println(cmdOut[1]);
+            logger.log(Level.SEVERE, "ERROR getting Frames: ");
+            logger.log(Level.SEVERE, cmdOut[1]);
         }
         frames = cmdOut[0];
-        System.out.println("Frames: " + frames);
 
         //resolution
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
         if (!"".equals(cmdOut[1])) {
-            System.out.println("ERROR getting Resolution: ");
-            System.out.println(cmdOut[1]);
+            logger.log(Level.SEVERE, "ERROR getting Resolution: ");
+            logger.log(Level.SEVERE, cmdOut[1]);
         }
         width = cmdOut[0];
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
         if (!"".equals(cmdOut[1])) {
-            System.out.println("ERROR getting Resolution: ");
-            System.out.println(cmdOut[1]);
+            logger.log(Level.SEVERE, "ERROR getting Resolution: ");
+            logger.log(Level.SEVERE, cmdOut[1]);
         }
         height = cmdOut[0];
         resolution = width + "x" + height;
-        System.out.println("Resolution: " + resolution);
+        logger.log(Level.INFO, "Duration: " + duration + ", Framerate: " + framerate + ", Frames: " + frames + ", Resolution: " + resolution);
 
+        
         //Thumbnails
         List<String> thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
-        thumbArray.forEach(System.out::println);
+        /*
+        thumbArray.forEach((thumb) -> {
+            logger.log(Level.INFO, thumb);
+        });
+        */
         
         //Generate .mlt
         mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
-        System.out.println(mlt);
+        logger.log(Level.INFO, mlt);
         
         //get Supplier
         supplier = file.getParentFile().getName();
@@ -181,7 +185,7 @@ public class DirectoryCrawler {
         clip.setName(file.getName());
         clip.setPath(file.getAbsolutePath());
 
-        //FIX-ME deshardcodear esta mierda
+        //TODO FIX-ME deshardcodear esta mierda
         String path2[];
         List<String> thumbArray2 = new ArrayList<>();
         for (String path : thumbArray) {
@@ -197,8 +201,8 @@ public class DirectoryCrawler {
         clip.setDescription("descripcion generica");
         clip.setResolution(resolution);
         clip.setSupplier(supplier);
-        System.out.println("clip = " + clip.toString());
-        System.out.println("Send Network Request to playout-api/medias:\n");
+        logger.log(Level.INFO, "clip = " + clip.toString());
+        logger.log(Level.INFO, "Send Network Request to playout-api/medias:\n");
 
         //POSTing in Resty
         Gson gson = new Gson();
@@ -215,13 +219,16 @@ public class DirectoryCrawler {
             } catch (JSONException e) {}
             
             mediaId = (String)resty.json(playoutApiBaseUrl+"medias", Resty.content(jsonObject)).get("id");
-            System.out.println("mediaid:" +mediaId);
+            logger.log(Level.INFO, "mediaid:" +mediaId);
+        } catch (ConnectException e) {
+            logger.log(Level.SEVERE, "An error occurred while using medias API. Quiting...\n{0}", e.getMessage());
+            System.exit(1);
         } catch (IOException e) {
             // Hubo algún problema con el post a medias
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "A media with the same name \"{0}\" already exists! Quiting...", mediaName);
+            logger.log(Level.SEVERE, "A media with the same name \"{0}\" already exists! Quiting...", mediaName);
             System.exit(1);
-        } catch (Exception e) {
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using medias API. Quiting...\n{0}", e.getMessage());
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "An error occurred while using medias API.\nUnhandlede exception.\n Quiting...\n{0}", ex.getMessage());
             System.exit(1);
         }
         
@@ -232,12 +239,11 @@ public class DirectoryCrawler {
         jsonClip = gson.toJson(clip);
         clipMap = gson.fromJson(jsonClip, Map.class);
         jsonObject = new JSONObject(clipMap);     
-        System.out.println("clip = " + clip.toString());
-        
-        System.out.println("Send Network Request to playout-api/thumbnails:\n");
+        logger.log(Level.INFO, "clip = " + clip.toString());
+        logger.log(Level.INFO, "Send Network Request to playout-api/thumbnails:\n");
         JSONResource insertedThumbResult = resty.json(playoutApiBaseUrl+"thumbnails", Resty.content(jsonObject));
         
-        System.out.println("Send Network Request to playout-api/pieces:\n");
+        logger.log(Level.INFO, "Send Network Request to playout-api/pieces:\n");
         JSONResource insertedResult = resty.json(playoutApiBaseUrl+"pieces", Resty.content(jsonObject));
 
         try {
@@ -246,34 +252,34 @@ public class DirectoryCrawler {
 
         } catch (JSONException ex) {
             // TODO: HANDLE
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         } catch (NumberFormatException ex){
             // TODO: HANDLE
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         
         // Agarro el supplier del clip y pregunto si existe antes de insertarlo
-        System.out.println("clip = " + clip.toString());
-        System.out.println("Send Network Request to admin-api/supplier/name/"+supplier);
+        logger.log(Level.INFO, "clip = " + clip.toString());
+        logger.log(Level.INFO, "Send Network Request to admin-api/supplier/name/"+supplier);
         String supplierId=".";
         JSONResource supplierResource;
         try{
             //JSONArray supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+supplier).array();
             supplierResource = resty.json(adminApiBaseUrl+"supplier/name/"+supplier);
             if(supplierResource.object().length() == 0  ){
-                System.out.println("JSON SUPPLIER IS NULL, INSERT NEW ONE");
+                logger.log(Level.INFO, "JSON SUPPLIER IS NULL, INSERT NEW ONE");
                 supplierId = (String)resty.json(adminApiBaseUrl+"supplier", Resty.content(jsonObject)).get("id");
             }else{
-                System.out.println("JSON SUPPLIER IS NOT NULL, GET EXISTENT ID"); 
+                logger.log(Level.INFO, "JSON SUPPLIER IS NOT NULL, GET EXISTENT ID"); 
                 supplierId = (String) supplierResource.get("id");
             }
             
         } catch (IOException e) {
             // Hubo algún problema con el post a supplier
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", supplier);
+            logger.log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", supplier);
             System.exit(1);
         }catch (Exception e) {
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
+            logger.log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
             e.printStackTrace();
             System.exit(1);
         }
@@ -284,13 +290,11 @@ public class DirectoryCrawler {
         clipMap = gson.fromJson(jsonClip, Map.class);
         jsonObject = new JSONObject(clipMap);        
         
-        System.out.println("clip = " + clip.toString());
-        System.out.println("Send Network Request to playout-api/rawMedia:\n");
+        logger.log(Level.INFO, "clip = " + clip.toString());
+        logger.log(Level.INFO, "Send Network Request to playout-api/rawMedia:\n");
         // Envio a la Admin Api para RawMedia
         resty.json(adminApiBaseUrl+"rawMedia", Resty.content(jsonObject));
 
-        System.out.println("--------------------\n");
-        
         return processedFiles;
     }
 }

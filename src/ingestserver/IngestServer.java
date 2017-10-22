@@ -8,7 +8,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import libconfig.ConfigurationManager;
 
-//TODO: replace al System.out with logger.log
 /**
  *
  * @author ragnarok
@@ -35,7 +34,7 @@ public class IngestServer {
         
         // TRANSCODE FIRST
         File[] inputFolders = new File(cfg.getDevourerInputDir()).listFiles();
-        DirectoryCrawler dc = new DirectoryCrawler();
+        DirectoryCrawler dc = new DirectoryCrawler(logger);
         for (File file : inputFolders) { //Transcode Providers
             if (file.isDirectory()) {
                 dc.transcodeDirectory(file.getAbsolutePath());
