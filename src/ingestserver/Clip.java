@@ -18,7 +18,6 @@ public class Clip {
     private String id;
     private String description;
     private String resolution;
-    private String filterId, sketchId;
     private String mediaId;
     private String supplier;
     private String supplierId;
@@ -29,14 +28,6 @@ public class Clip {
 
     public void setSupplier(String supplier) {
         this.supplier = supplier;
-    }
-
-    public void setFilterId(String filterId) {
-        this.filterId = filterId;
-    }
-
-    public void setSketchId(String sketchId) {
-        this.sketchId = sketchId;
     }
 
     public void setMediaId(String mediaId) {
