@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import libconfig.ConfigurationManager;
 
 /**
  * Provide functions to process video files by FFmpeg/FFprobe. FFmpeg and
@@ -17,26 +18,31 @@ import java.util.logging.Logger;
  * @author cyberpunx
  */
 public class FileProcessor {
-
-    private String ffprobe;
+    private final String ffprobe;
     private final String ffmpeg;
-    private String mediaDirectory;
-    private String thumbDirectory;
+    private final String inDir;
+    private final String outDir;
+    private final String thumbDirectory;
+    private final String meltPath;
+    private final String fps;
+    private final String ffmpegArgs;
+    private final Logger logger;
 
     /**
      * Reads FFmpeg and FFprobe paths from properties file.
      */
-    public FileProcessor() {
-        Config config = null;
-        try {
-            config = new Config();
-        } catch (IOException ex) {
-            Logger.getLogger(DirectoryCrawler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.ffmpeg = config.getFfmpeg();
-        this.ffprobe = config.getFfprobe();
-        this.mediaDirectory = config.getMediaDirectory();
-        this.thumbDirectory = config.getThumbnailDir() + "/thumbnails";
+    public FileProcessor(Logger logger) {
+        ConfigurationManager cfg = ConfigurationManager.getInstance();
+        String mltFwPath = cfg.getMltFrameworkPath();
+        this.logger = logger;
+        this.ffmpeg = mltFwPath+"/ffmpeg";
+        this.ffprobe = mltFwPath+"/ffprobe";
+        this.meltPath = mltFwPath+"/melt";
+        this.inDir = cfg.getDevourerInputDir();
+        this.outDir = cfg.getDevourerOutputDir();
+        this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
+        this.fps = Integer.toString(cfg.getMediasFPS());
+        this.ffmpegArgs = cfg.getDevourerFfmpegArgs();
     }
 
     /**
@@ -61,8 +67,17 @@ public class FileProcessor {
         int part1 = Integer.parseInt(parts[0]);
         int part2 = Integer.parseInt(parts[1]);
         int fpsint = (int) Math.ceil((double) part1 / part2); //rounds up
-        String fps = Integer.toString(fpsint);
-        return fps;
+        
+        return Integer.toString(fpsint);
+    }
+    
+    public String createMltFile(String clip, String frameLen, String fps) throws IOException{
+        clip = clip.replace("\"", "");
+        String xmlPath;
+        xmlPath = clip.substring(0, clip.lastIndexOf('.'))+".mlt";
+        String cmdString = meltPath+" "+clip+" out="+frameLen+" length="+frameLen+" -consumer xml:"+xmlPath+" frame_rate_num="+fps;
+        execCmd(cmdString);        
+        return clip.substring(0, clip.lastIndexOf('.'))+".mlt";
     }
 
     /**
@@ -80,13 +95,13 @@ public class FileProcessor {
         //create /thumbnail directory if not exists
         File thumbDirPath = new File(this.thumbDirectory);
         if (thumbDirPath.exists()) {
-            System.out.println("thumbnail dir already exists");
+            logger.log(Level.INFO, "thumbnail dir already exists");
         } else {
-            System.out.println("thumbnail dir not exists, creating");
+            logger.log(Level.INFO, "thumbnail dir not exists, creating");
             if (thumbDirPath.mkdir()) {
-                System.out.printf("Successfully created new file: %s%n", thumbDirPath.getAbsolutePath());
+                logger.log(Level.INFO, "Successfully created new file: %s%n", thumbDirPath.getAbsolutePath());
             } else {
-                System.out.printf("Failed to create new file: %s%n", thumbDirPath.getAbsolutePath());
+                logger.log(Level.SEVERE, "Failed to create new file: %s%n", thumbDirPath.getAbsolutePath());
             }
         }
 
@@ -109,7 +124,7 @@ public class FileProcessor {
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
         if (files.length == 0) {
-            System.out.println("The directory is empty");
+            logger.log(Level.WARNING, "The directory is empty");
         } else {
             for (File aFile : files) {
                 if (aFile.toString().toLowerCase().endsWith(".png")) {
@@ -122,30 +137,49 @@ public class FileProcessor {
         return thumbArray;
     }
 
-    public void transcodeLoselessH264(String inputString) {
+    public void transcode(String inputString) {
         File input = new File(inputString);
+        String supplier = input.getParentFile().getName();
+             
         String[] cmdOut;
-        String outputString = this.mediaDirectory + "/output/" + input.getName();
+        String outputString;
+                
+        // If supplier is input folder. Output supplier = Default
+        File inDir = new File(this.inDir);
+        if(supplier.equals(inDir.getName())){
+            logger.log(Level.WARNING, "supplier is input!  " +supplier+"="+inDir.getName());
+            new File(this.outDir+"/Default").mkdirs(); // Creates output/supplier folder
+            outputString = this.outDir + "/Default/" +input.getName();
+        }else{
+            new File(this.outDir+"/"+supplier).mkdirs(); // Creates output/supplier folder
+            outputString = this.outDir + "/" + supplier+ "/" +input.getName();
+        }        
         File output = new File(outputString);
-
+        
+        logger.log(Level.INFO, "Input file: "+inputString +", Output file: "+output);
         if (output.exists()) {
-            System.out.println("FILE OUTPUT ALREADY EXISTS: " + outputString + " -- NO TRANSCODE DONE");
+            logger.log(Level.WARNING, "Output file already exists. No transcoding done");
         } else {
             try {
-                System.out.println("TRANSCODING: " + inputString);
-                cmdOut = execFfmpeg("-i " + inputString + " -f avi -c:v libx264 -qp 0 " + outputString);
-                if (!"".equals(cmdOut[1])) {
-                    System.out.println(cmdOut[1]);
-                }
-                if (!"".equals(cmdOut[1])) {
-                    System.out.println(cmdOut[0]);
-                }
+                logger.log(Level.INFO, "Transcoding input file.");
+                cmdOut = execFfmpeg("-i " + inputString +" -r " + this.fps + " " +this.ffmpegArgs + " " + outputString);
+                
+                if(false){ // Activate this for debugging the ffmpeg command
+                    // stdout
+                    if (!"".equals(cmdOut[1])) {
+                        logger.log(Level.INFO, cmdOut[1]);
+                    }
 
+                    // stderr
+                    if (!"".equals(cmdOut[0])) {
+                        logger.log(Level.INFO, cmdOut[0]);
+                    }
+                }
             } catch (IOException ex) {
+                //TODO: HADLE
                 Logger.getLogger(FileProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }
 
     /**

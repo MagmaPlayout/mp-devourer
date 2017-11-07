@@ -9,10 +9,8 @@ import java.util.List;
  * @author cyberpunx
  */
 public class Clip {
-
     private String name;
     private String path;
-    //private String thumbnails;
     private List<Thumbnail> thumbnails;
     private String duration;
     private String frameRate;
@@ -20,6 +18,21 @@ public class Clip {
     private String id;
     private String description;
     private String resolution;
+    private String mediaId;
+    private String supplier;
+    private String supplierId;
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
+    public void setMediaId(String mediaId) {
+        this.mediaId = mediaId;
+    }
 
     public long getId() {
         return Long.getLong(id);
@@ -31,7 +44,7 @@ public class Clip {
 
     @Override
     public String toString() {
-        return "Clip{" + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + frameRate + ", frames=" + frameCount + ", id=" + id + '}';
+        return "Clip{" + "id=" + id + "name=" + name + ", path=" + path + ", thumbnails=" + thumbnails + ", duration=" + duration + ", fps=" + frameRate + ", frames=" + frameCount + ", id=" + mediaId + ", supplier=" + supplier + ", supplierId=" + supplierId +'}';
     }
 
     /**
@@ -86,7 +99,7 @@ public class Clip {
             thumb.setPath(thumbstring);
             thumbList.add(thumb);
         }
-        List<Thumbnail> newList = new ArrayList<Thumbnail>(thumbList);
+        List<Thumbnail> newList = new ArrayList<>(thumbList);
         //Gson gson = new Gson();
         //String thumbString = gson.toJson(thumbList);
         this.thumbnails = newList;
@@ -158,6 +171,14 @@ public class Clip {
 
     String getResolution() {
         return this.resolution;
+    }
+
+    void setSupplierId(String supplierId) {
+        this.supplierId = supplierId;
+    }
+    
+    String getSupplierId() {
+        return this.supplierId;
     }
 
 }
