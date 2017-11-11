@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +18,6 @@ import us.monoid.web.Resty;
 /**
  * Given a directory. Walks it, analyzing each file and processing it if it's a
  * valid file format using a FileProcessor.
- *
- * DirectoryCrawler runs-and-dies, if you want to constantly analyze a
- * directory, use DirectoryPoller class.
  *
  * @author cyberpunx
  */
@@ -47,29 +43,20 @@ public class DirectoryCrawler {
      * @param processedFiles HashMap that will be populated with a key (piece id) and a value (it's corresponding Clip)
      * @return
      */
-    public HashMap<Integer, Clip> analyze(String directory, HashMap<Integer, Clip> processedFiles) {
-        // Setup Redis and deletes all previous keys. We start from 0 each time.
-        //RedisManager redis = new RedisManager();
-        //redis.resetRedisKeys();
-        String dirPath = directory;
-        File dir = new File(dirPath);
+    public HashMap<Integer, Clip> analyzeDir(String directory, HashMap<Integer, Clip> processedFiles) {
+        File dir = new File(directory);
         File[] files = dir.listFiles();
 
-        if(files == null){
+        if(files == null || files.length == 0){
             logger.log(Level.INFO, "No files to analyze in the specified directory!");
-            return processedFiles;
         }
-
-        if (files.length == 0) {
-            logger.log(Level.INFO, "The directory is empty");
-        } else {
+        else {
             logger.log(Level.INFO, "ANALIZING: " + directory + "\n\n");
             for (File aFile : files) {
                 if (fp.isCorrectFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
                     try {
-                        //process files
-                        processFile(aFile, processedFiles);
+                        processedFiles = processFile(aFile, processedFiles);
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
                         logger.log(Level.SEVERE, e.getMessage());
@@ -167,12 +154,7 @@ public class DirectoryCrawler {
 
         
         //Thumbnails
-        List<String> thumbArray = fp.generateThumbnailGIF(file, duration2, "2");
-        /*
-        thumbArray.forEach((thumb) -> {
-            logger.log(Level.INFO, thumb);
-        });
-        */
+        List<String> thumbArray = fp.generateThumbnails(file, duration2, "2");
         
         //Generate .mlt
         mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
@@ -185,16 +167,7 @@ public class DirectoryCrawler {
         clip.setName(file.getName());
         clip.setPath(file.getAbsolutePath());
 
-        //TODO FIX-ME deshardcodear esta mierda
-        String path2[];
-        List<String> thumbArray2 = new ArrayList<>();
-        for (String path : thumbArray) {
-            path2 = path.split("/");
-            path = "/public/img/" + path2[path2.length - 1];
-            thumbArray2.add(path);
-        }
-
-        clip.setThumbnails(thumbArray2);
+        clip.setThumbnails(thumbArray);
         clip.setDuration(duration);
         clip.setFps(framerate);
         clip.setFrames(frames);

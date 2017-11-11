@@ -40,7 +40,7 @@ public class FileProcessor {
         this.meltPath = mltFwPath+"/melt";
         this.inDir = cfg.getDevourerInputDir();
         this.outDir = cfg.getDevourerOutputDir();
-        this.thumbDirectory = cfg.getDevourerThumbDir() + "/thumbnails";
+        this.thumbDirectory = cfg.getDevourerThumbDir();
         this.fps = Integer.toString(cfg.getMediasFPS());
         this.ffmpegArgs = cfg.getDevourerFfmpegArgs();
     }
@@ -90,24 +90,16 @@ public class FileProcessor {
      * @return an array with all thumbnails absolute paths
      * @throws IOException
      */
-    public List<String> generateThumbnailGIF(File file, String duration, String thumbCount) throws IOException {
-
+    public List<String> generateThumbnails(File file, String duration, String thumbCount) throws IOException {
         //create /thumbnail directory if not exists
         File thumbDirPath = new File(this.thumbDirectory);
-        if (thumbDirPath.exists()) {
-            logger.log(Level.INFO, "thumbnail dir already exists");
-        } else {
-            logger.log(Level.INFO, "thumbnail dir not exists, creating");
-            if (thumbDirPath.mkdir()) {
-                logger.log(Level.INFO, "Successfully created new file: %s%n", thumbDirPath.getAbsolutePath());
-            } else {
-                logger.log(Level.SEVERE, "Failed to create new file: %s%n", thumbDirPath.getAbsolutePath());
-            }
+        if (thumbDirPath.mkdir()) {
+            logger.log(Level.INFO, "Successfully created new file: %s%n", thumbDirPath.getAbsolutePath());
+        } else if(!thumbDirPath.isDirectory()){
+            logger.log(Level.SEVERE, "Failed to create new file: %s%n", thumbDirPath.getAbsolutePath());
         }
-
-        String[] cmdOut;
-        duration = duration.split("\\.")[0];
-        List<String> thumbArray = new ArrayList<>();
+        
+        
 
         //get filename without extension
         String fname = file.getName();
@@ -118,9 +110,11 @@ public class FileProcessor {
         File thumbDir = new File(this.thumbDirectory + "/" + fname);
         thumbDir.mkdir();
 
-        cmdOut = execFfmpeg("-i " + file.getAbsolutePath() + " -vf fps=" + thumbCount + "/" + duration + " " + thumbDir + "/" + fname + "_%03d.png ");
+        duration = duration.split("\\.")[0];
+        execFfmpeg("-i " + file.getAbsolutePath() + " -vf fps=" + thumbCount + "/" + duration + " " + thumbDir + "/" + fname + "_%03d.png ");
 
         String dirPath = thumbDir.getAbsolutePath();
+        List<String> thumbArray = new ArrayList<>();
         File dir = new File(dirPath);
         File[] files = dir.listFiles();
         if (files.length == 0) {
@@ -273,32 +267,18 @@ public class FileProcessor {
      * @return True if File is a valid forma (video). False otherwise.
      */
     public boolean isCorrectFileType(Path file) {
-        boolean flag = false;
-        if (file.toString().toLowerCase().endsWith(".mp4")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".webm")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".mkv")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".avi")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".flv")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".mpeg")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".gif")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".m4v")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".wmv")) {
-            flag = true;
-        } else if (file.toString().toLowerCase().endsWith(".mov")) {
-            flag = true;
-        }
-//        } else if (file.toString().toLowerCase().endsWith(".txt")) {
-//            flag = true;
-//        }
-        return flag;
+        return (
+            file.toString().toLowerCase().endsWith(".mp4")  || 
+            file.toString().toLowerCase().endsWith(".webm") ||
+            file.toString().toLowerCase().endsWith(".mkv")  ||
+            file.toString().toLowerCase().endsWith(".avi")  ||
+            file.toString().toLowerCase().endsWith(".flv")  ||
+            file.toString().toLowerCase().endsWith(".mpeg") ||
+            file.toString().toLowerCase().endsWith(".gif")  ||
+            file.toString().toLowerCase().endsWith(".m4v")  ||
+            file.toString().toLowerCase().endsWith(".wmv")  ||
+            file.toString().toLowerCase().endsWith(".mov")
+        );
     }
 
 }
