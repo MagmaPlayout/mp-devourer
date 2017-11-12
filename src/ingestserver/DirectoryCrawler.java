@@ -53,14 +53,16 @@ public class DirectoryCrawler {
         else {
             logger.log(Level.INFO, "ANALIZING: " + directory + "\n\n");
             for (File aFile : files) {
-                if (fp.isCorrectFileType(aFile.toPath())) {
+                if (fp.isSupportedFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
                     try {
-                        processedFiles = processFile(aFile, processedFiles);
+                        if(isItOkToProcess(aFile)){
+                            processedFiles = processFile(aFile, processedFiles);
+                        }
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "An error ocurred while using the REST API. Data can't be uploaded to the database. Aborting.");
                         logger.log(Level.SEVERE, e.getMessage());
-                        System.exit(1);
+//                        System.exit(1);
                     }
                 }
             }
@@ -68,6 +70,58 @@ public class DirectoryCrawler {
 
         return processedFiles;
     }
+    
+    /**
+     * Obtains the provider of the file and checks if it's current (ok to process
+     * or if it's an old file (should be ignored)
+     * 
+     * @param file
+     * @return 
+     */
+    private boolean isItOkToProcess(File file){
+        boolean process = false;
+        String curProviderPath = file.getParentFile().getName();
+        String curName = file.getName();
+
+        // Default provider is when the media is on the root input dir without a provider folder
+        if(curProviderPath.equals(FileProcessor.DEFAULT_PROVIDER)){
+            File[] inputFiles = new File(ConfigurationManager.getInstance().getDevourerInputDir()).listFiles();
+            process = isItOkToProcessThisFileFromProvider(inputFiles, curName);
+        }
+        // Every other case has a provider folder
+        else {
+            File[] inputFiles = new File(ConfigurationManager.getInstance().getDevourerInputDir()+"/"+curProviderPath).listFiles();
+            process = isItOkToProcessThisFileFromProvider(inputFiles, curName);
+        }
+        
+        return process;
+    }
+    
+    /**
+     * Checks if the specified curFileName exists in the input directory.
+     * If it does, then it's OK to process, if it doesn't it means that it's 
+     * an old file, and returns false to be ignored.
+     * 
+     * @param providerFiles
+     * @param curFileName
+     * @return 
+     */
+    private boolean isItOkToProcessThisFileFromProvider(File[] providerFiles, String curFileName){
+        if(providerFiles == null){
+            return false;
+        }
+        
+        boolean process = false;
+        for(File inFile:providerFiles){
+            if(!inFile.isDirectory() && inFile.getName().equals(curFileName)){
+                process = true;
+                break;
+            }
+        }
+        
+        return process;
+    }
+    
 
     public void transcodeDirectory(String directory) {
         String dirPath = directory;
@@ -84,7 +138,7 @@ public class DirectoryCrawler {
         } else {
             logger.log(Level.INFO, "TRANSCODING DIRECTORY: " + dirPath + "\n\n");
             for (File aFile : files) {
-                if (fp.isCorrectFileType(aFile.toPath())) {
+                if (fp.isSupportedFileType(aFile.toPath())) {
                     //System.out.println(aFile.getName() + " - " + aFile.length());
                     try {
                         //transcode files
@@ -195,14 +249,14 @@ public class DirectoryCrawler {
             logger.log(Level.INFO, "mediaid:" +mediaId);
         } catch (ConnectException e) {
             logger.log(Level.SEVERE, "An error occurred while using medias API. Quiting...\n{0}", e.getMessage());
-            System.exit(1);
+//            System.exit(1);
         } catch (IOException e) {
             // Hubo algún problema con el post a medias
             logger.log(Level.SEVERE, "A media with the same name \"{0}\" already exists! Quiting...", mediaName);
-            System.exit(1);
+//            System.exit(1);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "An error occurred while using medias API.\nUnhandlede exception.\n Quiting...\n{0}", ex.getMessage());
-            System.exit(1);
+//            System.exit(1);
         }
         
         // Le pongo el mediaId al clip y lo mando a la api de pieces
@@ -250,11 +304,11 @@ public class DirectoryCrawler {
         } catch (IOException e) {
             // Hubo algún problema con el post a supplier
             logger.log(Level.SEVERE, "Error getting a Supplier with name the name \"{0}\"! Quiting...", supplier);
-            System.exit(1);
+//            System.exit(1);
         }catch (Exception e) {
             logger.log(Level.SEVERE, "An error occured while using ADMIN API. Quiting...\n{0}", e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
+//            e.printStackTrace();
+//            System.exit(1);
         }
         
         // Agarro el supplier id, se lo cargo al clip y lo mando a rawMedias

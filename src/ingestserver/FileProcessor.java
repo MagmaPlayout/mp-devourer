@@ -18,6 +18,7 @@ import libconfig.ConfigurationManager;
  * @author cyberpunx
  */
 public class FileProcessor {
+    public static final String DEFAULT_PROVIDER = "Default";
     private final String ffprobe;
     private final String ffmpeg;
     private final String inDir;
@@ -138,12 +139,12 @@ public class FileProcessor {
         String[] cmdOut;
         String outputString;
                 
-        // If supplier is input folder. Output supplier = Default
+        // If supplier is input folder. Output supplier = Default (DEFAULT_PROVIDER)
         File inDir = new File(this.inDir);
         if(supplier.equals(inDir.getName())){
             logger.log(Level.WARNING, "supplier is input!  " +supplier+"="+inDir.getName());
-            new File(this.outDir+"/Default").mkdirs(); // Creates output/supplier folder
-            outputString = this.outDir + "/Default/" +input.getName();
+            new File(this.outDir+"/"+DEFAULT_PROVIDER).mkdirs(); // Creates output/supplier folder
+            outputString = this.outDir + "/"+DEFAULT_PROVIDER+"/" +input.getName();
         }else{
             new File(this.outDir+"/"+supplier).mkdirs(); // Creates output/supplier folder
             outputString = this.outDir + "/" + supplier+ "/" +input.getName();
@@ -152,7 +153,7 @@ public class FileProcessor {
         
         logger.log(Level.INFO, "Input file: "+inputString +", Output file: "+output);
         if (output.exists()) {
-            logger.log(Level.WARNING, "Output file already exists. No transcoding done");
+            logger.log(Level.INFO, "Output file already exists. No transcoding needed");
         } else {
             try {
                 logger.log(Level.INFO, "Transcoding input file.");
@@ -266,7 +267,7 @@ public class FileProcessor {
      * @param file to be analyzed as a valid format.
      * @return True if File is a valid forma (video). False otherwise.
      */
-    public boolean isCorrectFileType(Path file) {
+    public boolean isSupportedFileType(Path file) {
         return (
             file.toString().toLowerCase().endsWith(".mp4")  || 
             file.toString().toLowerCase().endsWith(".webm") ||

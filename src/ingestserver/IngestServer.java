@@ -139,7 +139,6 @@ public class IngestServer {
         logger.log(Level.INFO, "Moving processed files to \"processed\" folder...");
         
         File processedFolder = new File(cfg.getDevourerInputDir()+"/../processed");
-        System.out.println(processedFolder.getAbsoluteFile());
         File inputDir = new File(cfg.getDevourerInputDir());
         processedFolder.mkdir();
         
