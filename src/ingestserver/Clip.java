@@ -1,5 +1,7 @@
 package ingestserver;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,10 +52,20 @@ public class Clip {
     /**
      * Initializes the clip with null data
      */
-    public Clip() {
-
+    public Clip() {}
+    
+    public Clip(String name, String path, String duration, String frameRate,
+            String frameCount, String description, String resolution, String supplier) {
+        this.name = name;
+        this.path = path;
+        this.duration = duration;
+        this.frameRate = frameRate;
+        this.frameCount = frameCount;
+        this.description = description;
+        this.resolution = resolution;
+        this.supplier = supplier;
     }
-
+    
     /**
      *
      * @return name of the video file.
@@ -89,19 +101,23 @@ public class Clip {
     /**
      * Given a String array where each position is a absolute path to a
      * thumbnail. Generates and set a Thumbnail class array.
-     *
+     * 
+     * @param the relative path of the webroot to the thumbnails
      * @param thumbnails array of strins. Each string is a Path to a thumbnail.
      */
-    public void setThumbnails(List<String> thumbnails) {
+    public void setThumbnails(List<String> thumbnails, String guiThumbsDir) {
         List<Thumbnail> thumbList = new ArrayList<>();
-        for (final String thumbstring : thumbnails) {
+        for (final String thumbPath : thumbnails) {
             Thumbnail thumb = new Thumbnail();
-            thumb.setPath(thumbstring);
+            
+            // Here I ignore the absolute path and replace it with the relative path.
+            // Relative to the webroot, so that the GUI can display the thumbs.
+            File thumbFile = new File(thumbPath);
+            thumb.setPath(guiThumbsDir+thumbFile.getParentFile().getName()+"/"+thumbFile.getName());
             thumbList.add(thumb);
         }
         List<Thumbnail> newList = new ArrayList<>(thumbList);
-        //Gson gson = new Gson();
-        //String thumbString = gson.toJson(thumbList);
+        
         this.thumbnails = newList;
     }
 

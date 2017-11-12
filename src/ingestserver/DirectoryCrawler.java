@@ -26,12 +26,13 @@ public class DirectoryCrawler {
     private final String playoutApiBaseUrl;
     private final String adminApiBaseUrl;
     private final Logger logger;
+    private final ConfigurationManager cfg;
    
     public DirectoryCrawler(Logger logger) {
         this.fp = new FileProcessor(logger);
         this.logger = logger;
-
-        ConfigurationManager cfg = ConfigurationManager.getInstance();
+        
+        this.cfg = ConfigurationManager.getInstance();
         this.playoutApiBaseUrl = cfg.getPlayoutAPIRestBaseUrl();
         this.adminApiBaseUrl = cfg.getAdminAPIRestBaseUrl();
     }
@@ -85,12 +86,12 @@ public class DirectoryCrawler {
 
         // Default provider is when the media is on the root input dir without a provider folder
         if(curProviderPath.equals(FileProcessor.DEFAULT_PROVIDER)){
-            File[] inputFiles = new File(ConfigurationManager.getInstance().getDevourerInputDir()).listFiles();
+            File[] inputFiles = new File(this.cfg.getDevourerInputDir()).listFiles();
             process = isItOkToProcessThisFileFromProvider(inputFiles, curName);
         }
         // Every other case has a provider folder
         else {
-            File[] inputFiles = new File(ConfigurationManager.getInstance().getDevourerInputDir()+"/"+curProviderPath).listFiles();
+            File[] inputFiles = new File(this.cfg.getDevourerInputDir()+"/"+curProviderPath).listFiles();
             process = isItOkToProcessThisFileFromProvider(inputFiles, curName);
         }
         
@@ -155,79 +156,61 @@ public class DirectoryCrawler {
     private HashMap<Integer, Clip> processFile(File file, HashMap<Integer, Clip> processedFiles) throws IOException {
         logger.log(Level.INFO, "Processing file: " + file.getAbsolutePath());
 
-        String[] cmdOut;
-        String duration;
-        String framerate;
-        String frames;
-        String resolution;
-        String width;
-        String height;
-        String mlt;
-        String supplier;
-
         //duration in seconds
-        cmdOut = fp.execFfprobe("-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
-        if (!"".equals(cmdOut[1])) {
+        CommandOutput cmdOut = fp.execFfprobe("-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
+        if (!cmdOut.stderr.isEmpty()) {
             logger.log(Level.SEVERE, "ERROR getting Duration: ");
-            logger.log(Level.SEVERE, cmdOut[1]);
+            logger.log(Level.SEVERE, cmdOut.stderr);
         }
-        String duration2 = cmdOut[0];
-        duration = fp.secondsToDuration(cmdOut[0]);
+        String durationSecs = cmdOut.stdout;
+        String duration = fp.generateISODurationString(cmdOut.stdout);
 
         //framerate
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
-        if (!"".equals(cmdOut[1])) {
+        if (!cmdOut.stderr.isEmpty()) {
             logger.log(Level.SEVERE, "ERROR getting Framerate: ");
-            logger.log(Level.SEVERE, cmdOut[1]);
+            logger.log(Level.SEVERE, cmdOut.stderr);
         }
-        framerate = fp.getFPS(cmdOut[0]);
+        String framerate = fp.getFPS(cmdOut.stdout);
 
         //frames
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=nb_frames -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
-        if (!"".equals(cmdOut[1])) {
+        if (!cmdOut.stderr.isEmpty()) {
             logger.log(Level.SEVERE, "ERROR getting Frames: ");
-            logger.log(Level.SEVERE, cmdOut[1]);
+            logger.log(Level.SEVERE, cmdOut.stderr);
         }
-        frames = cmdOut[0];
+        String frames = cmdOut.stdout;
 
         //resolution
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
-        if (!"".equals(cmdOut[1])) {
+        if (!cmdOut.stderr.isEmpty()) {
             logger.log(Level.SEVERE, "ERROR getting Resolution: ");
-            logger.log(Level.SEVERE, cmdOut[1]);
+            logger.log(Level.SEVERE, cmdOut.stderr);
         }
-        width = cmdOut[0];
+        String width = cmdOut.stdout;
         cmdOut = fp.execFfprobe("-v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 " + file.getAbsolutePath());
-        if (!"".equals(cmdOut[1])) {
+        if (!cmdOut.stderr.isEmpty()) {
             logger.log(Level.SEVERE, "ERROR getting Resolution: ");
-            logger.log(Level.SEVERE, cmdOut[1]);
+            logger.log(Level.SEVERE, cmdOut.stderr);
         }
-        height = cmdOut[0];
-        resolution = width + "x" + height;
+        String height = cmdOut.stdout;
+        String resolution = width + "x" + height;
         logger.log(Level.INFO, "Duration: " + duration + ", Framerate: " + framerate + ", Frames: " + frames + ", Resolution: " + resolution);
 
         
         //Thumbnails
-        List<String> thumbArray = fp.generateThumbnails(file, duration2, "2");
+        List<String> thumbArray = fp.generateThumbnails(file, durationSecs, this.cfg.getDevourerThumbsQty());
         
         //Generate .mlt
-        mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
+        String mlt = fp.createMltFile(file.getAbsolutePath(),frames,framerate);
         logger.log(Level.INFO, mlt);
         
         //get Supplier
-        supplier = file.getParentFile().getName();
-
-        Clip clip = new Clip();
-        clip.setName(file.getName());
-        clip.setPath(file.getAbsolutePath());
-
-        clip.setThumbnails(thumbArray);
-        clip.setDuration(duration);
-        clip.setFps(framerate);
-        clip.setFrames(frames);
-        clip.setDescription("descripcion generica");
-        clip.setResolution(resolution);
-        clip.setSupplier(supplier);
+        String supplier = file.getParentFile().getName();
+        Clip clip = new Clip(file.getName(), file.getAbsolutePath(), duration, framerate, frames, "Descripción genérica", resolution, supplier);
+        clip.setThumbnails(thumbArray, this.cfg.getGuiThumbDir());
+        
+        
         logger.log(Level.INFO, "clip = " + clip.toString());
         logger.log(Level.INFO, "Send Network Request to playout-api/medias:\n");
 

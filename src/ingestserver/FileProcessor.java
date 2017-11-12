@@ -50,9 +50,9 @@ public class FileProcessor {
      * Just adds PT[input]S to a String given representing seconds.
      *
      * @param seconds: Just a String in seconds
-     * @return a String in seconds followin the ISO 8601 format.
+     * @return a String in seconds following the ISO 8601 format.
      */
-    public String secondsToDuration(String seconds) {
+    public String generateISODurationString(String seconds) {
         return "PT" + seconds + "S";
     }
 
@@ -136,7 +136,6 @@ public class FileProcessor {
         File input = new File(inputString);
         String supplier = input.getParentFile().getName();
              
-        String[] cmdOut;
         String outputString;
                 
         // If supplier is input folder. Output supplier = Default (DEFAULT_PROVIDER)
@@ -157,17 +156,17 @@ public class FileProcessor {
         } else {
             try {
                 logger.log(Level.INFO, "Transcoding input file.");
-                cmdOut = execFfmpeg("-i " + inputString +" -r " + this.fps + " " +this.ffmpegArgs + " " + outputString);
+                CommandOutput cmdOut = execFfmpeg("-i " + inputString +" -r " + this.fps + " " +this.ffmpegArgs + " " + outputString);
                 
                 if(false){ // Activate this for debugging the ffmpeg command
                     // stdout
-                    if (!"".equals(cmdOut[1])) {
-                        logger.log(Level.INFO, cmdOut[1]);
+                    if (!cmdOut.stdout.isEmpty()) {
+                        logger.log(Level.INFO, cmdOut.stdout);
                     }
 
                     // stderr
-                    if (!"".equals(cmdOut[0])) {
-                        logger.log(Level.INFO, cmdOut[0]);
+                    if (!cmdOut.stderr.isEmpty()) {
+                        logger.log(Level.INFO, cmdOut.stderr);
                     }
                 }
             } catch (IOException ex) {
@@ -184,22 +183,22 @@ public class FileProcessor {
      * @return array of 2 Strings. Position 0 is output. Position 1 is error.
      * @throws IOException
      */
-    public String[] execFfprobe(String cmd) throws IOException {
+    public CommandOutput execFfprobe(String cmd) throws IOException {
         Process p = Runtime.getRuntime().exec(ffprobe + " " + cmd);
         BufferedReader output = getOutput(p);
         BufferedReader error = getError(p);
-        String line, outprint, errorprint;
-        line = outprint = errorprint = "";
+        String line, stdout, stderr;
+        line = stdout = stderr = "";
 
         while ((line = output.readLine()) != null) {
-            outprint = outprint + line;
+            stdout = stdout + line;
         }
 
         while ((line = error.readLine()) != null) {
-            errorprint = errorprint + line;
+            stderr = stderr + line;
         }
 
-        return new String[]{outprint, errorprint};
+        return new CommandOutput(stdout, stderr);
     }
 
     /**
@@ -209,22 +208,22 @@ public class FileProcessor {
      * @return array of 2 Strings. Position 0 is output. Position 1 is error.
      * @throws IOException
      */
-    public String[] execCmd(String cmd) throws IOException {
+    public CommandOutput execCmd(String cmd) throws IOException {
         Process p = Runtime.getRuntime().exec(cmd);
         BufferedReader output = getOutput(p);
         BufferedReader error = getError(p);
-        String line, outprint, errorprint;
-        line = outprint = errorprint = "";
+        String line, stdout, stderr;
+        line = stdout = stderr = "";
 
         while ((line = output.readLine()) != null) {
-            outprint = outprint + line;
+            stdout = stdout + line;
         }
 
         while ((line = error.readLine()) != null) {
-            errorprint = errorprint + line;
+            stderr = stderr + line;
         }
 
-        return new String[]{outprint, errorprint};
+        return new CommandOutput(stdout, stderr);
     }
 
     /**
@@ -234,22 +233,22 @@ public class FileProcessor {
      * @return array of 2 Strings. Position 0 is output. Position 1 is error.
      * @throws IOException
      */
-    public String[] execFfmpeg(String cmd) throws IOException {
+    public CommandOutput execFfmpeg(String cmd) throws IOException {
         Process p = Runtime.getRuntime().exec(ffmpeg + " " + cmd);
         BufferedReader output = getOutput(p);
         BufferedReader error = getError(p);
-        String line, outprint, errorprint;
-        line = outprint = errorprint = "";
+        String line, stdout, stderr;
+        line = stdout = stderr = "";
 
         while ((line = output.readLine()) != null) {
-            outprint = outprint + line;
+            stdout = stdout + line;
         }
 
         while ((line = error.readLine()) != null) {
-            errorprint = errorprint + line;
+            stderr = stderr + line;
         }
 
-        return new String[]{outprint, errorprint};
+        return new CommandOutput(stdout, stderr);
     }
 
     private static BufferedReader getOutput(Process p) {
